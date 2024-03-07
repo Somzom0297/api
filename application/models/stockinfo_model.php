@@ -19,12 +19,15 @@ class stockinfo_model extends CI_Model
         mst_product_code.mpc_model,
         info_stock_detail.description,
         info_stock_detail.Qty,
-        info_item_reserve.iir_reserve_qty
+        sum(info_item_reserve.iir_reserve_qty)as Total,
+        info_item_reserve.isd_id
+        
     FROM
         info_stock_detail
         LEFT JOIN mst_brand ON mst_brand.mb_id = info_stock_detail.mb_id
         LEFT JOIN mst_product_code ON mst_product_code.mpc_id = info_stock_detail.mpc_id
-        LEFT JOIN info_item_reserve on info_item_reserve.isd_id = info_stock_detail.isd_id";
+        LEFT JOIN info_item_reserve on info_item_reserve.isd_id = info_stock_detail.isd_id
+        GROUP BY info_item_reserve.isd_id";
 
         $query = $this->db->query($sql);
         $data = $query->result();
