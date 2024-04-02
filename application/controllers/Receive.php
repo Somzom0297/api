@@ -12,9 +12,18 @@ class Receive extends CI_Controller {
         $year = $this->input->post('year');
         $month = $this->input->post('month');
         $result = $this->sim->getReceiveInfo($year,$month);
-        // echo "<pre>";
-        // print_r($year);
-        // exit;
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function getReceiveDetail(){
+        $inv = $this->input->post('inv');
+        $result = $this->sim->getReceiveInfo($inv);
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
         echo json_encode($result);
     } 
 

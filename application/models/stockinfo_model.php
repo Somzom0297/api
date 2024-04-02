@@ -50,6 +50,30 @@ class stockinfo_model extends CI_Model
         $data = $query->result();
         return $data;
     }
+    public function getReceiveDetail($data)
+    {
+        $sql = "SELECT 
+                    isd_doc_number,
+                    isd_inv_date,
+                    isd_inv_no,
+                    isd_po_number,
+                    mb.mb_name,
+                    mpc.mpc_name,
+                    mpc.mpc_model,
+                    isd_description,
+                    isd_qty,
+                    isd_price_unit
+        
+                FROM  info_stock_detail as isd
+                    LEFT JOIN mst_brand mb ON mb.mb_id = isd.mb_id
+                    LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
+                    where isd_inv_no = '$data'
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
 
     
 
