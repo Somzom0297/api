@@ -20,7 +20,7 @@ class Receive extends CI_Controller {
 
     public function getReceiveDetail(){
         $inv = $this->input->post('inv');
-        $result = $this->sim->getReceiveInfo($inv);
+        $result = $this->sim->getReceiveDetail($inv);
         //  echo "<pre>";
         // print_r($result);
         //  exit;
