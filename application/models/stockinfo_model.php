@@ -50,6 +50,23 @@ class stockinfo_model extends CI_Model
         $data = $query->result();
         return $data;
     }
+    public function getReceiveInfoAllMonth($year)
+    {
+        $sql = "SELECT 
+                isd_doc_number,
+                isd_inv_date,
+                isd_inv_no,
+                isd_po_number, 
+                COUNT(isd_inv_no) as total
+                FROM  info_stock_detail as isd
+                WHERE YEAR(isd_inv_date) = '$year'
+                GROUP BY isd_inv_no
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
     public function getReceiveDetail($data)
     {
         $sql = "SELECT 
