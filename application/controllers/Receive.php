@@ -23,6 +23,12 @@ class Receive extends CI_Controller {
         echo json_encode($result);
     } 
 
+    public function getReceiveEdit(){
+        $result = $this->sim->getReceiveE();
+
+        echo json_encode($result);
+    } 
+
     public function getReceiveDetail(){
         $inv = $this->input->post('inv');
         $result = $this->sim->getReceiveDetail($inv);
