@@ -25,7 +25,6 @@ class Receive extends CI_Controller {
 
     public function getReceiveEdit(){
         $result = $this->sim->getReceiveE();
-
         echo json_encode($result);
     } 
 
@@ -37,6 +36,37 @@ class Receive extends CI_Controller {
         //  exit;
         echo json_encode($result);
     } 
+
+    public function getModelById(){
+        $id = $this->input->post('id');
+        $result = $this->sim->getModelById($id);
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function getSelProductCode(){
+        $result = $this->sim->getSelProductCode();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function getSelIndexBox(){
+        $result = $this->sim->getSelIndexBox();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function getselBrand(){
+        $result = $this->sim->getselBrand();
+        echo json_encode($result);
+    } 
+
     public function addReceive() {
         // Handle form submission
         // Retrieve form data
@@ -81,6 +111,7 @@ class Receive extends CI_Controller {
         );
         echo json_encode($response);
     }
+
     public function show_Edit_Ac(){
         $result = $this->apimd->get_account();
         // echo "<pre>";
