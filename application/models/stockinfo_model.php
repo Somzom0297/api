@@ -11,8 +11,7 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function getStockinfo()
-    {
+    public function getStockinfo(){
         $sql = "SELECT
         mst_brand.mb_name, 
         mst_product_code.mpc_name,
@@ -91,6 +90,27 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
+    public function getListProductDetail($data){
+
+        $sql = "SELECT
+                    mb_name,
+                    mpc_name,
+                    mpc_model,
+                    mpc_discription,
+                    info_stock_detail.isd_qty,
+                    info_stock_detail.isd_price_unit
+                FROM
+                    `info_stock_detail`
+                LEFT JOIN mst_brand ON mst_brand.mb_id = info_stock_detail.mb_id
+                LEFT JOIN mst_product_code ON mst_product_code.mpc_id = info_stock_detail.mpc_id
+                WHERE isd_doc_number = '$data'
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
     public function getSelProductCode(){
         $sql = "SELECT 
                     mpc_id,
@@ -141,6 +161,14 @@ class stockinfo_model extends CI_Model
         $query = $this->db->query($sql);
         $data = $query->result();
         return $data;
+    }
+
+    public function insertReceive($data) {
+        // Perform database insert operation
+        $this->db->insert('info_stock_detail', $data);
+
+        // Check if insert was successful
+        return $this->db->affected_rows() > 0 ? true : false;
     }
 
     public function show_drop_down(){
