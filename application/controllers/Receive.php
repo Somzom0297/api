@@ -85,7 +85,6 @@ class Receive extends CI_Controller {
             'isd_po_number' => $this->input->post('purchase_order'),
             'isd_po_date' => $this->input->post('purchase_order_date'),
             'isd_customer' => $this->input->post('supplier_name'),
-            'mib_id' => $this->input->post('index_id'),
             'mb_id' => $this->input->post('brand_id'),
             'mpc_id' => $this->input->post('product_id'),
             'isd_qty' => $this->input->post('qty'),

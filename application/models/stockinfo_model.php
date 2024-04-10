@@ -75,7 +75,7 @@ class stockinfo_model extends CI_Model
                     mb.mb_name,
                     mpc.mpc_name,
                     mpc.mpc_model,
-                    isd_description,
+                    mpc.mpc_discription,
                     isd_qty,
                     isd_price_unit
         
@@ -152,9 +152,12 @@ class stockinfo_model extends CI_Model
     public function getModelById($id){
         $sql = "SELECT 
                     mpc_model,
-                    mpc_discription
-                    
+                    mpc_discription,
+                    mpc_name,
+                    mib_number,
+                    mib_size
                 FROM  mst_product_code
+                INNER JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
                 WHERE mpc_id = $id
                 ";
 
