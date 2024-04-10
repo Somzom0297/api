@@ -25,7 +25,6 @@ class Receive extends CI_Controller {
 
     public function getReceiveEdit(){
         $result = $this->sim->getReceiveE();
-
         echo json_encode($result);
     } 
 
@@ -37,50 +36,76 @@ class Receive extends CI_Controller {
         //  exit;
         echo json_encode($result);
     } 
-    public function addReceive() {
-        // Handle form submission
-        // Retrieve form data
 
+    public function getModelById(){
+        $id = $this->input->post('id');
+        $result = $this->sim->getModelById($id);
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function ListProductDetail(){
+        $id = $this->input->post('doc_id');
+        $result = $this->sim->getListProductDetail($id);
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function getSelProductCode(){
+        $result = $this->sim->getSelProductCode();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function getSelIndexBox(){
+        $result = $this->sim->getSelIndexBox();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function getselBrand(){
+        $result = $this->sim->getselBrand();
+        echo json_encode($result);
+    } 
+
+    public function insertReceive() {
         $data = [
-            'documentNumber' => $this->input->post('inpAddDoc'),
-            'documentDate' => $this->input->post('inpAddDocDate'),
-            'isd_inv_no' => $this->input->post('inpAddInv'),
-            'isd_inv_date' => $this->input->post('inpAddInvDate'),
-            'purchaseOrder' => $this->input->post('inpAddPo'),
-            'purchaseOrderDate' => $this->input->post('inpAddPoDate'),
-            'supplierName' => $this->input->post('inpAddSupplier')
-        ];
+            'isd_doc_number' => $this->input->post('doc_number'),
+            'isd_doc_date' => $this->input->post('doc_date'),
+            'isd_inv_no' => $this->input->post('invoice_number'),
+            'isd_inv_date' => $this->input->post('invoice_date'),
+            'isd_po_number' => $this->input->post('purchase_order'),
+            'isd_po_date' => $this->input->post('purchase_order_date'),
+            'isd_customer' => $this->input->post('supplier_name'),
+            'mib_id' => $this->input->post('index_id'),
+            'mb_id' => $this->input->post('brand_id'),
+            'mpc_id' => $this->input->post('product_id'),
+            'isd_qty' => $this->input->post('qty'),
+            'isd_price_unit' => $this->input->post('price'),
 
+        ];
+        $file_inventory = $_FILES['file_inventory']['name'];
+        $data['isd_file'] = $file_inventory;
+        $response = $this->sim->insertReceive($data);
+
+        return json_encode($response);
+        // echo "<pre>";
+        // var_dump($data);
+        // var_dump($file_inventory);
 
         // Handle file upload
-        if (!empty($_FILES['inpAddFileInv']['name'])) {
-            $config['upload_path'] = './uploads/'; // Specify the upload directory
-            $config['allowed_types'] = 'pdf|doc|docx'; // Specify allowed file types
-            $config['max_size'] = 1024; // Maximum file size in kilobytes
 
-            $this->load->library('upload', $config);
-
-            if ($this->upload->do_upload('inpAddFileInv')) {
-                $fileData = $this->upload->data();
-                $filePath = $fileData['file_name'];
-
-                // Process file upload - save file path to database or perform any other action
-            } else {
-                // Handle file upload error
-                $uploadError = $this->upload->display_errors();
-                echo $uploadError;
-            }
-        }
-
-        // Perform any additional processing - e.g., saving data to database
-
-        // Send response back to the client
-        $response = array(
-            'status' => 'success',
-            'message' => 'Data received successfully'
-        );
-        echo json_encode($response);
+       
     }
+
     public function show_Edit_Ac(){
         $result = $this->apimd->get_account();
         // echo "<pre>";

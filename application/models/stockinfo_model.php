@@ -11,8 +11,7 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function getStockinfo()
-    {
+    public function getStockinfo(){
         $sql = "SELECT
         mst_brand.mb_name, 
         mst_product_code.mpc_name,
@@ -22,7 +21,7 @@ class stockinfo_model extends CI_Model
         sum(info_item_reserve.iir_reserve_qty)as Total,
         info_item_reserve.isd_id
         
-    FROM
+        FROM
         info_stock_detail
         LEFT JOIN mst_brand ON mst_brand.mb_id = info_stock_detail.mb_id
         LEFT JOIN mst_product_code ON mst_product_code.mpc_id = info_stock_detail.mpc_id
@@ -33,8 +32,7 @@ class stockinfo_model extends CI_Model
         $data = $query->result();
         return $data;
     }
-    public function getReceiveInfo($year,$month)
-    {
+    public function getReceiveInfo($year, $month){
         $sql = "SELECT 
                 isd_doc_number,
                 isd_inv_date,
@@ -50,8 +48,8 @@ class stockinfo_model extends CI_Model
         $data = $query->result();
         return $data;
     }
-    public function getReceiveInfoAllMonth($year)
-    {
+
+    public function getReceiveInfoAllMonth($year){
         $sql = "SELECT 
                 isd_doc_number,
                 isd_inv_date,
@@ -67,8 +65,8 @@ class stockinfo_model extends CI_Model
         $data = $query->result();
         return $data;
     }
-    public function getReceiveDetail($data)
-    {
+
+    public function getReceiveDetail($data){
         $sql = "SELECT 
                     isd_doc_number,
                     isd_inv_date,
@@ -92,10 +90,88 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    
+    public function getListProductDetail($data){
 
-    public function show_drop_down()
-    {
+        $sql = "SELECT
+                    mb_name,
+                    mpc_name,
+                    mpc_model,
+                    mpc_discription,
+                    info_stock_detail.isd_qty,
+                    info_stock_detail.isd_price_unit
+                FROM
+                    `info_stock_detail`
+                LEFT JOIN mst_brand ON mst_brand.mb_id = info_stock_detail.mb_id
+                LEFT JOIN mst_product_code ON mst_product_code.mpc_id = info_stock_detail.mpc_id
+                WHERE isd_doc_number = '$data'
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getSelProductCode(){
+        $sql = "SELECT 
+                    mpc_id,
+                    mpc_name
+                FROM  mst_product_code
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getSelIndexBox(){
+        $sql = "SELECT 
+                    mib_id,
+                    mib_number,
+                    mib_size
+                FROM  mst_index_box
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getselBrand(){
+        $sql = "SELECT 
+                    mb_id,
+                    mb_name
+
+                FROM  mst_brand
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getModelById($id){
+        $sql = "SELECT 
+                    mpc_model,
+                    mpc_discription
+                    
+                FROM  mst_product_code
+                WHERE mpc_id = $id
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function insertReceive($data) {
+        // Perform database insert operation
+        $this->db->insert('info_stock_detail', $data);
+
+        // Check if insert was successful
+        return $this->db->affected_rows() > 0 ? true : false;
+    }
+
+    public function show_drop_down(){
         $sql1 = "SELECT spg_id,spg_name From sys_permission_group";
         $query = $this->db->query($sql1);
 
@@ -112,10 +188,7 @@ class stockinfo_model extends CI_Model
         return $arr;
     }
 
-
-
-    public function insert_user($data, $sess)
-    {
+    public function insert_user($data, $sess){
         $empcode = $data["EmpCode"];
         $password = md5($data["EmpPassword"]);
         $firstname = $data["EmpFirstName"];
@@ -144,9 +217,7 @@ class stockinfo_model extends CI_Model
         }
     }
 
-
-    public function show_show_acc($data)
-    {
+    public function show_show_acc($data){
         $id = $data["id"];
         // return $id;
         // exit;
@@ -162,8 +233,7 @@ class stockinfo_model extends CI_Model
         }
     }
 
-    public function update_status($data)
-    {
+    public function update_status($data){
         $id = $data["saId"];
         $stt = $data["newStatus"];
 
@@ -184,14 +254,13 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function update_flg($data)
-    {
+    public function update_flg($data){
         $stFlg = $data["newStatus"];
         $saId = $data["saId"];
 
         $sql = "UPDATE sys_account 
-    SET sa_status_flg = '$stFlg'
-    WHERE sa_id = '$saId';";
+        SET sa_status_flg = '$stFlg'
+        WHERE sa_id = '$saId';";
 
         $query = $this->db->query($sql);
         if ($this->db->affected_rows() > 0) {
