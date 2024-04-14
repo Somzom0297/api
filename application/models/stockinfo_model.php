@@ -4,12 +4,10 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class stockinfo_model extends CI_Model
 {
 
-    public function __construct()
-    {
+    public function __construct(){
         parent::__construct();
         $this->load->database();
     }
-
 
     public function getStockinfo(){
         $sql = "SELECT
@@ -75,7 +73,10 @@ class stockinfo_model extends CI_Model
                     mb.mb_name,
                     mpc.mpc_name,
                     mpc.mpc_model,
-                    isd_description,
+                    mpc.mpc_discription,
+                    isd_customer,
+                    isd_po_date,
+                    isd_doc_date,
                     isd_qty,
                     isd_price_unit
         
@@ -90,20 +91,47 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getListProductDetail($data){
+    public function getReceiveDetailAll(){
+        $sql = "SELECT 
+                    mpc.mpc_name,
+                    isd_doc_number,
+                    isd_inv_date,
+                    isd_inv_no,
+                    isd_po_number,
+                    mb.mb_name,
+                    mpc.mpc_id,
+                    mpc.mpc_model,
+                    mpc.mpc_discription,
+                    isd_qty,
+                    isd_created_date
+                FROM  info_stock_detail as isd
+                LEFT JOIN mst_brand mb ON mb.mb_id = isd.mb_id
+                LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
+                WHERE isd_created_date = (
+                    SELECT MIN(isd_created_date)
+                    FROM info_stock_detail
+                    WHERE mpc_id = mpc.mpc_id
+                )
+                ORDER BY isd_created_date ASC
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getListProductDetail(){
 
         $sql = "SELECT
                     mb_name,
                     mpc_name,
                     mpc_model,
                     mpc_discription,
-                    info_stock_detail.isd_qty,
-                    info_stock_detail.isd_price_unit
+                    isd_qty
                 FROM
                     `info_stock_detail`
                 LEFT JOIN mst_brand ON mst_brand.mb_id = info_stock_detail.mb_id
                 LEFT JOIN mst_product_code ON mst_product_code.mpc_id = info_stock_detail.mpc_id
-                WHERE isd_doc_number = '$data'
                 ";
 
         $query = $this->db->query($sql);
@@ -152,9 +180,14 @@ class stockinfo_model extends CI_Model
     public function getModelById($id){
         $sql = "SELECT 
                     mpc_model,
-                    mpc_discription
-                    
+                    mpc_discription,
+                    mpc_name,
+                    mib_number,
+                    mib_size,
+                    mb_name
                 FROM  mst_product_code
+                INNER JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
+                INNER JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
                 WHERE mpc_id = $id
                 ";
 
@@ -271,8 +304,7 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function show_update_acc($data, $sess)
-    {
+    public function show_update_acc($data, $sess){
         $id = $data["EmpId"];
         $empcode = $data["EmpCode"];
         $password = md5($data["EmpPassword"]);
@@ -308,8 +340,7 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function update_user($data, $sess)
-    {
+    public function update_user($data, $sess){
         $empcode = $data["EmpCode"];
         $password = ($data["EmpPassword"] != '') ? md5($data["EmpPassword"]) : NULL;
         $firstname = $data["EmpFirstName"];
@@ -366,8 +397,7 @@ class stockinfo_model extends CI_Model
         }
     }
 
-    private function get_user_data($empcode)
-    {
+    private function get_user_data($empcode){
         $sql_select = "
             SELECT *
             FROM sys_account
@@ -379,8 +409,7 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function show_upd_User($data, $sess)
-    {
+    public function show_upd_User($data, $sess){
         $empcode = $data["EmpCode"];
         $password = md5($data["EmpPassword"]);
         $firstname = $data["EmpFirstName"];
