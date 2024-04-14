@@ -74,6 +74,9 @@ class stockinfo_model extends CI_Model
                     mpc.mpc_name,
                     mpc.mpc_model,
                     mpc.mpc_discription,
+                    isd_customer,
+                    isd_po_date,
+                    isd_doc_date,
                     isd_qty,
                     isd_price_unit
         
@@ -96,6 +99,7 @@ class stockinfo_model extends CI_Model
                     isd_inv_no,
                     isd_po_number,
                     mb.mb_name,
+                    mpc.mpc_id,
                     mpc.mpc_model,
                     mpc.mpc_discription,
                     isd_qty,
