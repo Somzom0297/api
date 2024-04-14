@@ -29,7 +29,7 @@ class Receive extends CI_Controller {
     } 
 
     public function getReceiveDetail(){
-        $inv = $this->input->post('inv');
+        $inv = $this->input->get('inv');
         $result = $this->sim->getReceiveDetail($inv);
         //  echo "<pre>";
         // print_r($result);
@@ -40,15 +40,20 @@ class Receive extends CI_Controller {
     public function getModelById(){
         $id = $this->input->post('id');
         $result = $this->sim->getModelById($id);
-        //  echo "<pre>";
-        // print_r($result);
-        //  exit;
         echo json_encode($result);
     } 
 
     public function ListProductDetail(){
         $id = $this->input->post('doc_id');
         $result = $this->sim->getListProductDetail($id);
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function ListProductDetailAll(){
+        $result = $this->sim->getReceiveDetailAll();
         //  echo "<pre>";
         // print_r($result);
         //  exit;
