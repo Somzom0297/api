@@ -79,10 +79,10 @@ class stockinfo_model extends CI_Model
                     isd_doc_date,
                     isd_qty,
                     isd_price_unit
-        
+
                 FROM  info_stock_detail as isd
-                    LEFT JOIN mst_brand mb ON mb.mb_id = isd.mb_id
-                    LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
+                LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
+                LEFT JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
                     where isd_inv_no = '$data'
                 ";
 
@@ -183,6 +183,8 @@ class stockinfo_model extends CI_Model
                     mpc_discription,
                     mpc_name,
                     mib_number,
+                    mst_index_box.mib_id,
+                    mst_brand.mb_id,
                     mib_size,
                     mb_name
                 FROM  mst_product_code
