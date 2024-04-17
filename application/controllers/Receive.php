@@ -23,6 +23,19 @@ class Receive extends CI_Controller {
         echo json_encode($result);
     } 
 
+    public function getEditReceiveDetail(){
+        $isd_id = $this->input->get('isd_id');
+        $result1 = $this->sim->getEditReceiveDetail($isd_id);
+        $result2 = $this->sim->getEditReceiveDetailAll();
+        $results = array(
+            'result1' => $result1,
+            'result2' => $result2
+        );
+        
+        // Return the array containing both results
+        echo json_encode($results);
+    } 
+
     public function getReceiveEdit(){
         $result = $this->sim->getReceiveE();
         echo json_encode($result);
@@ -31,6 +44,15 @@ class Receive extends CI_Controller {
     public function getReceiveDetail(){
         $inv = $this->input->get('inv');
         $result = $this->sim->getReceiveDetail($inv);
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function getProductDetail(){
+        $mpc_id = $this->input->get('mpc_id');
+        $result = $this->sim->getProductDetail($mpc_id);
         //  echo "<pre>";
         // print_r($result);
         //  exit;
@@ -101,13 +123,31 @@ class Receive extends CI_Controller {
         $response = $this->sim->insertReceive($data);
 
         return json_encode($response);
-        // echo "<pre>";
-        // var_dump($data);
-        // var_dump($file_inventory);
 
-        // Handle file upload
+    }
 
-       
+    public function updateReceive() {
+        $isd_id = $this->input->post('ProductId');
+        $data = [
+
+            'mpc_id' => $this->input->post('product_id'),
+            'isd_qty' => $this->input->post('qty'),
+            'isd_price_unit' => $this->input->post('price'),
+
+        ];
+        // var_dump($data);exit();
+        $response = $this->sim->getUpdateReceive($data,$isd_id);
+
+        return json_encode($response);
+
+    }
+    public function deleteReceive() {
+        $isd_id = $this->input->post('id');
+        // var_dump($data);exit();
+        $response = $this->sim->getDeleteReceive($isd_id);
+
+        return json_encode($response);
+
     }
 
     public function show_Edit_Ac(){
