@@ -236,6 +236,19 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
+    public function getSelProductCodeIssue(){
+        $sql = "SELECT 
+                    info_stock_detail.mpc_id,
+                    mst_product_code.mpc_name
+                FROM  info_stock_detail
+                LEFT JOIN mst_product_code ON mst_product_code.mpc_id = info_stock_detail.mpc_id
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
     public function getSelIndexBox(){
         $sql = "SELECT 
                     mib_id,

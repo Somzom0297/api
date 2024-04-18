@@ -36,10 +36,10 @@ class Receive extends CI_Controller {
         echo json_encode($results);
     } 
 
-    public function getReceiveEdit(){
-        $result = $this->sim->getReceiveE();
-        echo json_encode($result);
-    } 
+    // public function getReceiveEdit(){
+    //     $result = $this->sim->getReceiveEdit();
+    //     echo json_encode($result);
+    // } 
 
     public function getReceiveDetail(){
         $inv = $this->input->get('inv');
@@ -84,6 +84,15 @@ class Receive extends CI_Controller {
 
     public function getSelProductCode(){
         $result = $this->sim->getSelProductCode();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+    
+
+    public function getSelProductCodeIssue(){
+        $result = $this->sim->getSelProductCodeIssue();
         //  echo "<pre>";
         // print_r($result);
         //  exit;
