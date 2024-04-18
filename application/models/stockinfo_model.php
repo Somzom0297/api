@@ -4,12 +4,14 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class stockinfo_model extends CI_Model
 {
 
-    public function __construct(){
+    public function __construct()
+    {
         parent::__construct();
         $this->load->database();
     }
 
-    public function getStockinfo(){
+    public function getStockinfo()
+    {
         $sql = "SELECT
         mst_brand.mb_name, 
         mst_product_code.mpc_name,
@@ -30,7 +32,8 @@ class stockinfo_model extends CI_Model
         $data = $query->result();
         return $data;
     }
-    public function getReceiveInfo($year, $month){
+    public function getReceiveInfo($year, $month)
+    {
         $sql = "SELECT 
                 isd_doc_number,
                 isd_inv_date,
@@ -46,8 +49,40 @@ class stockinfo_model extends CI_Model
         $data = $query->result();
         return $data;
     }
+    public function getIssueInfo($year, $month)
+    {
+        $sql = "SELECT 
+        isi_document,
+        isi_document_date,
+        COUNT(isd_id) as total
+        FROM  info_stock_issue as isi
+        WHERE YEAR(isi_document_date) = '$year' AND MONTH(isi_document_date) = '$month'
+        GROUP BY isi_document_date
+                ";
 
-    public function getReceiveInfoAllMonth($year){
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getIssueInfoAllMonth($year)
+    {
+        $sql = "SELECT 
+        isi_document,
+        isi_document_date,
+        COUNT(isd_id) as total
+        FROM  info_stock_issue as isi
+        WHERE YEAR(isi_document_date) = '$year'
+        GROUP BY isi_document_date
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getReceiveInfoAllMonth($year)
+    {
         $sql = "SELECT 
                 isd_doc_number,
                 isd_inv_date,
@@ -64,7 +99,8 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getReceiveDetail($data){
+    public function getReceiveDetail($data)
+    {
         $sql = "SELECT 
                     isd_doc_number,
                     isd_inv_date,
@@ -92,7 +128,47 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getProductDetail($data){
+    public function getIssueDetail($data)
+    {
+        $sql = "SELECT 
+                isi_document,
+                isi_document_date,
+                mb.mb_name,
+				mpc.mpc_name,
+				mpc.mpc_model,
+				isi_qty,
+				isi_unit_type,
+				isi_priceofunit,
+				isi_purchase_order,
+				isd_customer,
+				isi_invoice,
+				isi_invoice_date,
+				mib_number,
+				mib_size
+                isd_inv_date,
+                isd_inv_no,
+                isd_po_number,
+                mpc.mpc_discription,
+                isd.isd_id,
+                isd_po_date,
+                isd_doc_date,
+                isd_qty,
+				isd_price_unit
+        FROM  info_stock_issue as isi
+        INNER JOIN info_stock_detail isd ON isi.isd_id = isd.isd_id
+        INNER JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
+        INNER JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
+				INNER JOIN mst_index_box ON mst_index_box.mib_id = mpc.mib_id
+        where isi_document = '$data'
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getProductDetail($data)
+    {
         $sql = "SELECT 
                     mb.mb_name,
                     mpc.mpc_name,
@@ -105,7 +181,7 @@ class stockinfo_model extends CI_Model
                     (
                         SELECT SUM(isd_qty) 
                         FROM info_stock_detail 
-                        WHERE mpc_id = '1'
+                        WHERE mpc_id = '$data'
                     ) AS total_qty,
                     isd_price_unit
 
@@ -121,7 +197,8 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getEditReceiveDetail($data){
+    public function getEditReceiveDetail($data)
+    {
         $sql = "SELECT
                     info_stock_detail.isd_id,
                     info_stock_detail.mpc_id,
@@ -146,7 +223,8 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getEditReceiveDetailAll(){
+    public function getEditReceiveDetailAll()
+    {
         $sql = "SELECT
                     mpc_id,
                     mpc_name,
@@ -167,7 +245,8 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getReceiveDetailAll(){
+    public function getReceiveDetailAll()
+    {
         $sql = "SELECT 
         mpc.mpc_name,
         isd.isd_doc_number,
@@ -180,43 +259,46 @@ class stockinfo_model extends CI_Model
         mpc.mpc_discription,
         COALESCE(isd.isd_qty, 0) AS isd_qty,
         isd.isd_created_date
-    FROM  
-        mst_product_code AS mpc
-    LEFT JOIN 
-        (
-            SELECT 
-                isd.*, 
-                MIN(isd_created_date) AS min_created_date
-            FROM 
-                info_stock_detail AS isd
-            GROUP BY 
-                isd.mpc_id
-        ) AS min_isd ON mpc.mpc_id = min_isd.mpc_id
-    LEFT JOIN 
-        info_stock_detail AS isd ON min_isd.isd_id = isd.isd_id
-    LEFT JOIN 
-        mst_brand AS mb ON mb.mb_id = mpc.mb_id
-    ORDER BY 
-        isd_qty DESC
-                ";
+        FROM  
+            mst_product_code AS mpc
+        LEFT JOIN 
+            (
+                SELECT 
+                    isd.*, 
+                    MIN(isd_created_date) AS min_created_date
+                FROM 
+                    info_stock_detail AS isd
+                GROUP BY 
+                    isd.mpc_id
+            ) AS min_isd ON mpc.mpc_id = min_isd.mpc_id
+        LEFT JOIN 
+            info_stock_detail AS isd ON min_isd.isd_id = isd.isd_id
+        LEFT JOIN 
+            mst_brand AS mb ON mb.mb_id = mpc.mb_id
+        ORDER BY 
+            isd_qty DESC
+                    ";
 
         $query = $this->db->query($sql);
         $data = $query->result();
         return $data;
     }
 
-    public function getListProductDetail(){
+    public function getListProductDetail($data)
+    {
 
         $sql = "SELECT
                     mb_name,
                     mpc_name,
                     mpc_model,
                     mpc_discription,
-                    isd_qty
+                    isd_qty,
+                    isd_price_unit
                 FROM
                     `info_stock_detail`
-                LEFT JOIN mst_brand ON mst_brand.mb_id = info_stock_detail.mb_id
                 LEFT JOIN mst_product_code ON mst_product_code.mpc_id = info_stock_detail.mpc_id
+                LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
+                WHERE isd_doc_number = '$data'
                 ";
 
         $query = $this->db->query($sql);
@@ -224,7 +306,8 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getSelProductCode(){
+    public function getSelProductCode()
+    {
         $sql = "SELECT 
                     mpc_id,
                     mpc_name
@@ -236,8 +319,10 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getSelProductCodeIssue(){
+    public function getSelProductCodeIssue()
+    {
         $sql = "SELECT 
+                    info_stock_detail.isd_id,
                     info_stock_detail.mpc_id,
                     mst_product_code.mpc_name
                 FROM  info_stock_detail
@@ -249,7 +334,8 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getSelIndexBox(){
+    public function getSelIndexBox()
+    {
         $sql = "SELECT 
                     mib_id,
                     mib_number,
@@ -262,7 +348,8 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getselBrand(){
+    public function getselBrand()
+    {
         $sql = "SELECT 
                     mb_id,
                     mb_name
@@ -275,7 +362,8 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getModelById($id){
+    public function getModelById($id)
+    {
         $sql = "SELECT 
                     mpc_model,
                     mpc_discription,
@@ -296,7 +384,8 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function insertReceive($data) {
+    public function insertReceive($data)
+    {
         // Perform database insert operation
         $this->db->insert('info_stock_detail', $data);
 
@@ -304,8 +393,18 @@ class stockinfo_model extends CI_Model
         return $this->db->affected_rows() > 0 ? true : false;
     }
 
-    public function getUpdateReceive($data,$id) {
-        
+    public function insertIssue($data)
+    {
+        // Perform database insert operation
+        $this->db->insert('info_stock_issue', $data);
+
+        // Check if insert was successful
+        return $this->db->affected_rows() > 0 ? true : false;
+    }
+
+    public function getUpdateReceive($data, $id)
+    {
+
         $mpc_id = $data["mpc_id"];
         $isd_qty = $data["isd_qty"];
         $isd_price_unit = $data["isd_price_unit"];
@@ -326,16 +425,18 @@ class stockinfo_model extends CI_Model
         // Perform database insert operation
 
     }
-    public function getDeleteReceive($id) {
+    public function getDeleteReceive($id)
+    {
         // Perform the delete operation
         $this->db->where('isd_id', $id);
         $this->db->delete('info_stock_detail');
-        
+
         // Check if the delete operation was successful
         return $this->db->affected_rows() > 0;
     }
 
-    public function show_drop_down(){
+    public function show_drop_down()
+    {
         $sql1 = "SELECT spg_id,spg_name From sys_permission_group";
         $query = $this->db->query($sql1);
 
@@ -352,7 +453,8 @@ class stockinfo_model extends CI_Model
         return $arr;
     }
 
-    public function insert_user($data, $sess){
+    public function insert_user($data, $sess)
+    {
         $empcode = $data["EmpCode"];
         $password = md5($data["EmpPassword"]);
         $firstname = $data["EmpFirstName"];
@@ -381,7 +483,8 @@ class stockinfo_model extends CI_Model
         }
     }
 
-    public function show_show_acc($data){
+    public function show_show_acc($data)
+    {
         $id = $data["id"];
         // return $id;
         // exit;
@@ -397,7 +500,8 @@ class stockinfo_model extends CI_Model
         }
     }
 
-    public function update_status($data){
+    public function update_status($data)
+    {
         $id = $data["saId"];
         $stt = $data["newStatus"];
 
@@ -418,7 +522,8 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function update_flg($data){
+    public function update_flg($data)
+    {
         $stFlg = $data["newStatus"];
         $saId = $data["saId"];
 
@@ -435,7 +540,8 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function show_update_acc($data, $sess){
+    public function show_update_acc($data, $sess)
+    {
         $id = $data["EmpId"];
         $empcode = $data["EmpCode"];
         $password = md5($data["EmpPassword"]);
@@ -471,7 +577,8 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function update_user($data, $sess){
+    public function update_user($data, $sess)
+    {
         $empcode = $data["EmpCode"];
         $password = ($data["EmpPassword"] != '') ? md5($data["EmpPassword"]) : NULL;
         $firstname = $data["EmpFirstName"];
@@ -528,7 +635,8 @@ class stockinfo_model extends CI_Model
         }
     }
 
-    private function get_user_data($empcode){
+    private function get_user_data($empcode)
+    {
         $sql_select = "
             SELECT *
             FROM sys_account
@@ -540,7 +648,8 @@ class stockinfo_model extends CI_Model
     }
 
 
-    public function show_upd_User($data, $sess){
+    public function show_upd_User($data, $sess)
+    {
         $empcode = $data["EmpCode"];
         $password = md5($data["EmpPassword"]);
         $firstname = $data["EmpFirstName"];
