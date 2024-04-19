@@ -10,7 +10,7 @@ class stockinfo_model extends CI_Model
         $this->load->database();
     }
 
-    public function getStockinfo()
+    public function getStockinfoRe()
     {
         $sql = "SELECT
         mst_brand.mb_name, 
@@ -27,6 +27,24 @@ class stockinfo_model extends CI_Model
         LEFT JOIN mst_product_code ON mst_product_code.mpc_id = info_stock_detail.mpc_id
         LEFT JOIN info_item_reserve on info_item_reserve.isd_id = info_stock_detail.isd_id
         GROUP BY info_item_reserve.isd_id";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+    public function getStockinfo()
+    {
+        $sql = "SELECT
+        info_stock_detail.*,
+        mst_product_code.*,
+        mst_brand.*,
+        (SUM(isd_qty) - (SELECT isi_qty FROM info_stock_issue WHERE info_stock_issue.isd_id = info_stock_detail.isd_id)) as qtyy
+    FROM
+        mst_product_code
+    
+          LEFT JOIN info_stock_detail ON mst_product_code.mpc_id = info_stock_detail.mpc_id
+                LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
+    GROUP BY mst_product_code.mpc_id";
 
         $query = $this->db->query($sql);
         $data = $query->result();
@@ -158,7 +176,7 @@ class stockinfo_model extends CI_Model
         INNER JOIN info_stock_detail isd ON isi.isd_id = isd.isd_id
         INNER JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
         INNER JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
-				INNER JOIN mst_index_box ON mst_index_box.mib_id = mpc.mib_id
+	    INNER JOIN mst_index_box ON mst_index_box.mib_id = mpc.mib_id
         where isi_document = '$data'
                 ";
 
@@ -177,6 +195,8 @@ class stockinfo_model extends CI_Model
                     mpc.mpc_model,
                     mpc.mpc_discription,
                     isd.isd_id,
+                    isd.isd_doc_number,
+                    isd.isd_doc_date,
                     isd.isd_qty,
                     (
                         SELECT SUM(isd_qty) 
@@ -249,34 +269,26 @@ class stockinfo_model extends CI_Model
     {
         $sql = "SELECT 
         mpc.mpc_name,
-        isd.isd_doc_number,
-        isd.isd_inv_date,
-        isd.isd_inv_no,
-        isd.isd_po_number,
-        mb.mb_name,
-        mpc.mpc_id,
-        mpc.mpc_model,
-        mpc.mpc_discription,
-        COALESCE(isd.isd_qty, 0) AS isd_qty,
-        isd.isd_created_date
+            isd.isd_doc_number,
+            isd.isd_inv_date,
+            isd.isd_inv_no,
+            isd.isd_po_number,
+            mb.mb_name,
+            mpc.mpc_id,
+            mpc.mpc_model,
+            mpc.mpc_discription,
+            COALESCE(SUM(isd.isd_qty), 0) AS isd_qty,
+            MIN(isd.isd_created_date) AS isd_created_date
         FROM  
             mst_product_code AS mpc
         LEFT JOIN 
-            (
-                SELECT 
-                    isd.*, 
-                    MIN(isd_created_date) AS min_created_date
-                FROM 
-                    info_stock_detail AS isd
-                GROUP BY 
-                    isd.mpc_id
-            ) AS min_isd ON mpc.mpc_id = min_isd.mpc_id
-        LEFT JOIN 
-            info_stock_detail AS isd ON min_isd.isd_id = isd.isd_id
-        LEFT JOIN 
+            info_stock_detail AS isd ON mpc.mpc_id = isd.mpc_id
+                LEFT JOIN 
             mst_brand AS mb ON mb.mb_id = mpc.mb_id
+        GROUP BY 
+            mpc.mpc_id, mpc.mpc_name, mpc.mpc_model, mpc.mpc_discription
         ORDER BY 
-            isd_qty DESC
+            isd_qty DESC;
                     ";
 
         $query = $this->db->query($sql);
@@ -319,6 +331,31 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
+    public function getBrandAll()
+    {
+        $sql = "SELECT 
+                    mb_id,
+                    mb_name
+                FROM  mst_brand
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getIndexAll()
+    {
+        $sql = "SELECT 
+                   MAX(mib_number)+1 AS mib_number
+                FROM  mst_index_box
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
     public function getSelProductCodeIssue()
     {
         $sql = "SELECT 
@@ -334,6 +371,21 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
+    public function getSelProductCodeIssueAll()
+    {
+        $sql = "SELECT 
+                    mst_product_code.mpc_id,
+                    mst_product_code.mpc_name,
+                    info_stock_detail.isd_id
+                FROM  mst_product_code
+                LEFT JOIN info_stock_detail ON mst_product_code.mpc_id = info_stock_detail.mpc_id
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
     public function getSelIndexBox()
     {
         $sql = "SELECT 
@@ -341,6 +393,19 @@ class stockinfo_model extends CI_Model
                     mib_number,
                     mib_size
                 FROM  mst_index_box
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getIndexSize()
+    {
+        $sql = "SELECT 
+                    mib_size
+                FROM  mst_index_box
+                GROUP BY mib_size
                 ";
 
         $query = $this->db->query($sql);
@@ -388,6 +453,23 @@ class stockinfo_model extends CI_Model
     {
         // Perform database insert operation
         $this->db->insert('info_stock_detail', $data);
+
+        // Check if insert was successful
+        return $this->db->affected_rows() > 0 ? true : false;
+    }
+
+    public function insertProduct($data)
+    {
+        // Perform database insert operation
+        $this->db->insert('mst_product_code', $data);
+
+        // Check if insert was successful
+        return $this->db->affected_rows() > 0 ? true : false;
+    }
+    public function insertIndex($data)
+    {
+        // Perform database insert operation
+        $this->db->insert('mst_index_box', $data);
 
         // Check if insert was successful
         return $this->db->affected_rows() > 0 ? true : false;
