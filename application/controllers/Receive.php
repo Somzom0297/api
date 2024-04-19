@@ -7,7 +7,7 @@ class Receive extends CI_Controller {
         parent::__construct();
         $this->load->model('stockinfo_model', 'sim');
     }
-
+    
     public function getReceiveInfo(){
         $year = $this->input->post('year');
         $month = $this->input->post('month');
@@ -22,7 +22,31 @@ class Receive extends CI_Controller {
         //  exit;
         echo json_encode($result);
     } 
+    
+    public function getIssueInfo(){
+        $year = $this->input->post('year');
+        $month = $this->input->post('month');
+        if($month == 'all'){
+            $result = $this->sim->getIssueInfoAllMonth($year);
 
+        }else{
+        $result = $this->sim->getIssueInfo($year,$month);
+        }
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+    // function pdf()
+    // {
+    //     $this->load->helper('pdf_helper');
+    //     /*
+    //         ---- ---- ---- ----
+    //         your code here
+    //         ---- ---- ---- ----
+    //     */
+    //     $this->load->view('pdfreport', $data);
+    // }
     public function getEditReceiveDetail(){
         $isd_id = $this->input->get('isd_id');
         $result1 = $this->sim->getEditReceiveDetail($isd_id);
@@ -44,6 +68,14 @@ class Receive extends CI_Controller {
     public function getReceiveDetail(){
         $inv = $this->input->get('inv');
         $result = $this->sim->getReceiveDetail($inv);
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+    public function getIssueDetail(){
+        $doc_id = $this->input->get('doc_id');
+        $result = $this->sim->getIssueDetail($doc_id);
         //  echo "<pre>";
         // print_r($result);
         //  exit;
@@ -90,7 +122,6 @@ class Receive extends CI_Controller {
         echo json_encode($result);
     } 
     
-
     public function getSelProductCodeIssue(){
         $result = $this->sim->getSelProductCodeIssue();
         //  echo "<pre>";
@@ -130,6 +161,27 @@ class Receive extends CI_Controller {
         $file_inventory = $_FILES['file_inventory']['name'];
         $data['isd_file'] = $file_inventory;
         $response = $this->sim->insertReceive($data);
+
+        return json_encode($response);
+
+    }
+
+    public function insertIssue() {
+        $data = [
+            'isd_id' => $this->input->post('isd_id'),
+            'isi_document' => $this->input->post('doc_number'),
+            'isi_document_date' => $this->input->post('doc_date'),
+            'isi_invoice' => $this->input->post('invoice_number'),
+            'isi_invoice_date' => $this->input->post('invoice_date'),
+            'isi_purchase_order' => $this->input->post('purchase_order'),
+            'isi_purchase_order_date' => $this->input->post('purchase_order_date'),
+            'isi_customer' => $this->input->post('customer'),
+            'isi_qty' => $this->input->post('qty'),
+            'isi_priceofunit' => $this->input->post('price'),
+
+        ];
+
+        $response = $this->sim->insertIssue($data);
 
         return json_encode($response);
 
