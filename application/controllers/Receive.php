@@ -124,10 +124,18 @@ class Receive extends CI_Controller {
     } 
 
     public function insertProduct(){
+        $productName = $this->input->post('Product');
 
-
+        // Check if the product name already exists in the database
+        $productExists = $this->sim->checkProductExists($productName);
+    
+        // If product exists, return an alert
+        if($productExists) {
+            echo json_encode(array('success' => 'false'));
+            return;
+        }
         $data = [
-            'mpc_name' => $this->input->post('Product'),
+            'mpc_name' => $productName,
             'mib_id' => $this->input->post('index'),
             'mb_id' => $this->input->post('brand'),
             'mpc_model' => $this->input->post('Model'),
@@ -141,9 +149,9 @@ class Receive extends CI_Controller {
             'mib_status_flg' => '1',
         ];
 
-        $result = $this->sim->insertProduct($data);
-        $result = $this->sim->insertIndex($dataIndex);
-        echo json_encode($result);
+        $this->sim->insertProduct($data);
+        $this->sim->insertIndex($dataIndex);
+        echo json_encode(array('success' => 'true'));
     } 
 
     public function ListProductDetail(){
@@ -265,7 +273,7 @@ class Receive extends CI_Controller {
         // var_dump($data);exit();
         $response = $this->sim->getDeleteReceive($isd_id);
 
-        return json_encode($response);
+        echo json_encode(['success' => true]);
 
     }
 

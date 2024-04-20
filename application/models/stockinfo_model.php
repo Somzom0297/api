@@ -39,16 +39,16 @@ class stockinfo_model extends CI_Model
         mst_product_code.*,
         mst_brand.*,
         (SUM(isd_qty) - (SELECT isi_qty FROM info_stock_issue WHERE info_stock_issue.isd_id = info_stock_detail.isd_id)) as qtyy
-    FROM
-        mst_product_code
-    
-          LEFT JOIN info_stock_detail ON mst_product_code.mpc_id = info_stock_detail.mpc_id
-                LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
-    GROUP BY mst_product_code.mpc_id";
+        FROM
+            mst_product_code
+        
+              LEFT JOIN info_stock_detail ON mst_product_code.mpc_id = info_stock_detail.mpc_id
+                    LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
+        GROUP BY mst_product_code.mpc_id";
 
-        $query = $this->db->query($sql);
-        $data = $query->result();
-        return $data;
+            $query = $this->db->query($sql);
+            $data = $query->result();
+            return $data;
     }
     public function getReceiveInfo($year, $month)
     {
@@ -185,7 +185,7 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-    public function getProductDetail($data)
+    public function getProductDetail($id)
     {
         $sql = "SELECT 
                     mb.mb_name,
@@ -201,19 +201,32 @@ class stockinfo_model extends CI_Model
                     (
                         SELECT SUM(isd_qty) 
                         FROM info_stock_detail 
-                        WHERE mpc_id = '$data'
+                        WHERE mpc_id = '$id'
                     ) AS total_qty,
                     isd_price_unit
 
                 FROM  info_stock_detail as isd
                 LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
-                LEFT JOIN mst_index_box mib ON mib.mib_id = isd.mib_id
+                LEFT JOIN mst_index_box mib ON mib.mib_id = mpc.mib_id
                 LEFT JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
-                    where isd.mpc_id = '$data'
+                    where isd.mpc_id = '$id'
                 ";
 
         $query = $this->db->query($sql);
         $data = $query->result();
+
+        if (empty($data)) {
+            $sql = "SELECT 
+            * 
+            FROM mst_product_code 
+                LEFT JOIN mst_index_box mib ON mib.mib_id = mst_product_code.mib_id
+                LEFT JOIN mst_brand mb ON mb.mb_id = mst_product_code.mb_id
+            WHERE mpc_id = '$id'
+            
+            ";
+            $query = $this->db->query($sql);
+            $data = $query->result();
+        }
         return $data;
     }
 
@@ -430,18 +443,22 @@ class stockinfo_model extends CI_Model
     public function getModelById($id)
     {
         $sql = "SELECT 
-                    mpc_model,
-                    mpc_discription,
-                    mpc_name,
-                    mib_number,
-                    mst_index_box.mib_id,
-                    mst_brand.mb_id,
-                    mib_size,
-                    mb_name
-                FROM  mst_product_code
-                INNER JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
-                INNER JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
-                WHERE mpc_id = $id
+                            mpc_model,
+                            mpc_discription,
+                            mpc_name,
+                            mib_number,
+                            mst_index_box.mib_id,
+                            mst_brand.mb_id,
+                            mib_size,
+                            mb_name,
+                            isd_id,
+                            SUM(isd_qty) as total
+                            
+                            FROM  mst_product_code
+                            LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
+                            LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
+                            LEFT JOIN info_stock_detail ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+                            WHERE mst_product_code.mpc_id = '$id'
                 ";
 
         $query = $this->db->query($sql);
@@ -514,7 +531,7 @@ class stockinfo_model extends CI_Model
         $this->db->delete('info_stock_detail');
 
         // Check if the delete operation was successful
-        return $this->db->affected_rows() > 0;
+        return 1;
     }
 
     public function show_drop_down()
@@ -603,6 +620,14 @@ class stockinfo_model extends CI_Model
         }
     }
 
+    public function checkProductExists($productName) {
+        // Assuming you have a table named 'products' in your database
+        $this->db->where('mpc_name', $productName);
+        $query = $this->db->get('mst_product_code');
+
+        // If there is a row with the given product name, return true
+        return $query->num_rows() > 0;
+    }
 
     public function update_flg($data)
     {
