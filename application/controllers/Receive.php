@@ -73,6 +73,16 @@ class Receive extends CI_Controller {
         //  exit;
         echo json_encode($result);
     } 
+
+    public function getStockInfo(){
+
+        $result = $this->sim->getStockInfo();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
     public function getIssueDetail(){
         $doc_id = $this->input->get('doc_id');
         $result = $this->sim->getIssueDetail($doc_id);
@@ -94,6 +104,45 @@ class Receive extends CI_Controller {
     public function getModelById(){
         $id = $this->input->post('id');
         $result = $this->sim->getModelById($id);
+        echo json_encode($result);
+    } 
+    
+
+    public function getBrandAll(){
+        $result = $this->sim->getBrandAll();
+        echo json_encode($result);
+    } 
+
+    public function getIndexAll(){
+        $result = $this->sim->getIndexAll();
+        echo json_encode($result);
+    } 
+
+    public function getIndexSize(){
+        $result = $this->sim->getIndexSize();
+        echo json_encode($result);
+    } 
+
+    public function insertProduct(){
+
+
+        $data = [
+            'mpc_name' => $this->input->post('Product'),
+            'mib_id' => $this->input->post('index'),
+            'mb_id' => $this->input->post('brand'),
+            'mpc_model' => $this->input->post('Model'),
+            'mpc_discription' => $this->input->post('dis'),
+            'mpc_status_flg' => '1',
+        ];
+
+        $dataIndex = [
+            'mib_number' => $this->input->post('index'),
+            'mib_size' => $this->input->post('size'),
+            'mib_status_flg' => '1',
+        ];
+
+        $result = $this->sim->insertProduct($data);
+        $result = $this->sim->insertIndex($dataIndex);
         echo json_encode($result);
     } 
 
@@ -123,12 +172,21 @@ class Receive extends CI_Controller {
     } 
     
     public function getSelProductCodeIssue(){
-        $result = $this->sim->getSelProductCodeIssue();
+
+        $result1 = $this->sim->getSelProductCodeIssue();
+        $result2 = $this->sim->getSelProductCodeIssueAll();
+        $results = array(
+            'result1' => $result1,
+            'result2' => $result2
+        );
+        
+        // Return the array containing both results
+        echo json_encode($results);
+    } 
+        
         //  echo "<pre>";
         // print_r($result);
         //  exit;
-        echo json_encode($result);
-    } 
 
     public function getSelIndexBox(){
         $result = $this->sim->getSelIndexBox();
