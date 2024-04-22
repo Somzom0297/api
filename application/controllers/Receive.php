@@ -106,6 +106,11 @@ class Receive extends CI_Controller {
         $result = $this->sim->getModelById($id);
         echo json_encode($result);
     } 
+
+    public function showProductIssue(){
+        $result = $this->sim->getProductIssue();
+        echo json_encode($result);
+    } 
     
 
     public function getBrandAll(){
@@ -165,6 +170,14 @@ class Receive extends CI_Controller {
 
     public function ListProductDetailAll(){
         $result = $this->sim->getReceiveDetailAll();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function getConfirmProductDetail(){
+        $result = $this->sim->getConfirmProductDetail();
         //  echo "<pre>";
         // print_r($result);
         //  exit;
@@ -231,6 +244,13 @@ class Receive extends CI_Controller {
         return json_encode($response);
 
     }
+    public function insertIssueConfirm() {
+
+        $response = $this->sim->insertIssueConfirm();
+
+        return json_encode($response);
+
+    }
 
     public function insertIssue() {
         $data = [
@@ -243,7 +263,9 @@ class Receive extends CI_Controller {
             'isi_purchase_order_date' => $this->input->post('purchase_order_date'),
             'isi_customer' => $this->input->post('customer'),
             'isi_qty' => $this->input->post('qty'),
+            'isi_unit_type' => $this->input->post('Unit'),
             'isi_priceofunit' => $this->input->post('price'),
+            'lsi_status_flg' => '0',
 
         ];
 

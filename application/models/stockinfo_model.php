@@ -38,7 +38,7 @@ class stockinfo_model extends CI_Model
         info_stock_detail.*,
         mst_product_code.*,
         mst_brand.*,
-        (SUM(isd_qty) - (SELECT SUM(isi_qty) FROM info_stock_issue WHERE info_stock_issue.isd_id = info_stock_detail.isd_id)) as qtyy
+        (SUM(isd_qty) - ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id )) as qtyy
         FROM
             mst_product_code
         
@@ -452,7 +452,8 @@ class stockinfo_model extends CI_Model
                             mib_size,
                             mb_name,
                             isd_id,
-                            (SUM(isd_qty) - (SELECT SUM(isi_qty) FROM info_stock_issue WHERE info_stock_issue.isd_id = info_stock_detail.isd_id)) as total
+                            (SUM(isd_qty) - ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id )) as total
+
                             
                             FROM  mst_product_code
                             LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
@@ -464,6 +465,100 @@ class stockinfo_model extends CI_Model
         $query = $this->db->query($sql);
         $data = $query->result();
         return $data;
+    }
+
+    public function getProductIssue(){
+        $sql = "SELECT DISTINCT
+                    mst_product_code.mpc_id,
+                    mpc_img,
+                    mb_name,
+                    mpc_name,
+                    mpc_model,
+                    mpc_discription,
+                    mib_number,
+                    mib_size,
+                    info_stock_detail.isd_id,
+                    ( SELECT SUM( isd_qty ) FROM info_stock_detail WHERE info_stock_detail.mpc_id = mst_product_code.mpc_id ) AS qty,
+                    ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id ) AS out_qty 
+                FROM
+                    mst_product_code
+                LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
+                LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
+                LEFT JOIN info_stock_detail ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+                LEFT JOIN info_stock_issue ON info_stock_detail.isd_id = info_stock_issue.isd_id 
+                GROUP BY
+                    mst_product_code.mpc_id,
+                    mpc_img,
+                    mb_name,
+                    mpc_name,
+                    mpc_model,
+                    mpc_discription,
+                    mib_number,
+                    mib_size;
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function getConfirmProductDetail(){
+        $sql = "SELECT 
+        mpc.mpc_img,
+        mb.mb_name,
+        mpc.mpc_name,
+        mpc.mpc_model,
+        mpc.mpc_discription,
+        lsi.isd_id,
+        isi_document,
+        isi_document_date,
+        isi_invoice,
+        isi_invoice_date,
+        isi_purchase_order,
+        isi_purchase_order_date,
+        isi_qty,
+        isi_customer,
+        isi_priceofunit,
+        isi_unit_type
+
+        FROM  log_stock_issue as lsi
+        LEFT JOIN info_stock_detail isd ON lsi.isd_id = isd.isd_id
+        LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
+        LEFT JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
+        LEFT JOIN mst_index_box ON mst_index_box.mib_id = mpc.mib_id
+            WHERE lsi_status_flg = '0'
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function insertIssueConfirm(){
+        $sql = "INSERT INTO info_stock_issue (isd_id, isi_document, isi_document_date,isi_invoice,isi_invoice_date,isi_purchase_order,isi_purchase_order_date,isi_qty,isi_customer,isi_priceofunit,isi_unit_type)
+        SELECT 
+            isd_id,
+            isi_document,
+            isi_document_date,
+            isi_invoice,
+            isi_invoice_date,
+            isi_purchase_order,
+            isi_purchase_order_date,
+            isi_qty,
+            isi_customer,
+            isi_priceofunit,
+            isi_unit_type
+        FROM 
+            log_stock_issue
+        WHERE 
+            lsi_status_flg = '0';
+                ";
+        $sqlUpdate = "UPDATE log_stock_issue SET lsi_status_flg = '1' WHERE lsi_status_flg = '0';";
+        $this->db->query($sql);
+        $this->db->query($sqlUpdate);
+        // $this->db->insert('info_stock_detail', $data);
+
+        return $this->db->affected_rows() > 0 ? true : false;
     }
 
     public function insertReceive($data)
@@ -495,7 +590,7 @@ class stockinfo_model extends CI_Model
     public function insertIssue($data)
     {
         // Perform database insert operation
-        $this->db->insert('info_stock_issue', $data);
+        $this->db->insert('log_stock_issue', $data);
 
         // Check if insert was successful
         return $this->db->affected_rows() > 0 ? true : false;
