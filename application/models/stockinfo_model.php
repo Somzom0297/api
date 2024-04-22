@@ -38,7 +38,7 @@ class stockinfo_model extends CI_Model
         info_stock_detail.*,
         mst_product_code.*,
         mst_brand.*,
-        (SUM(isd_qty) - (SELECT isi_qty FROM info_stock_issue WHERE info_stock_issue.isd_id = info_stock_detail.isd_id)) as qtyy
+        (SUM(isd_qty) - (SELECT SUM(isi_qty) FROM info_stock_issue WHERE info_stock_issue.isd_id = info_stock_detail.isd_id)) as qtyy
         FROM
             mst_product_code
         
@@ -173,10 +173,10 @@ class stockinfo_model extends CI_Model
                 isd_qty,
 				isd_price_unit
         FROM  info_stock_issue as isi
-        INNER JOIN info_stock_detail isd ON isi.isd_id = isd.isd_id
-        INNER JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
-        INNER JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
-	    INNER JOIN mst_index_box ON mst_index_box.mib_id = mpc.mib_id
+        LEFT JOIN info_stock_detail isd ON isi.isd_id = isd.isd_id
+        LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
+        LEFT JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
+	    LEFT JOIN mst_index_box ON mst_index_box.mib_id = mpc.mib_id
         where isi_document = '$data'
                 ";
 
@@ -452,7 +452,7 @@ class stockinfo_model extends CI_Model
                             mib_size,
                             mb_name,
                             isd_id,
-                            SUM(isd_qty) as total
+                            (SUM(isd_qty) - (SELECT SUM(isi_qty) FROM info_stock_issue WHERE info_stock_issue.isd_id = info_stock_detail.isd_id)) as total
                             
                             FROM  mst_product_code
                             LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
