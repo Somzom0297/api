@@ -281,7 +281,8 @@ class stockinfo_model extends CI_Model
     public function getReceiveDetailAll()
     {
         $sql = "SELECT 
-        mpc.mpc_name,
+            mpc.mpc_img,
+            mpc.mpc_name,
             isd.isd_doc_number,
             isd.isd_inv_date,
             isd.isd_inv_no,
