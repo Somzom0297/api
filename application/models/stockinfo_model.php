@@ -593,11 +593,30 @@ class stockinfo_model extends CI_Model
 
         return $this->db->affected_rows() > 0 ? true : false;
     }
+    public function getMaxValue() {
+        // Perform a SELECT query to retrieve the maximum value of a column
+        $this->db->select_max('mb_id');
+        $query = $this->db->get('mst_brand');
+        
+        // Fetch the result
+        $result = $query->row();
+        
+        // Return the maximum value
+        return $result->mb_id;
+    }
 
     public function insertReceive($data)
     {
         // Perform database insert operation
         $this->db->insert('info_stock_detail', $data);
+
+        // Check if insert was successful
+        return $this->db->affected_rows() > 0 ? true : false;
+    }
+    public function insertBrand($data)
+    {
+        // Perform database insert operation
+        $this->db->insert('mst_brand', $data);
 
         // Check if insert was successful
         return $this->db->affected_rows() > 0 ? true : false;
@@ -752,6 +771,13 @@ class stockinfo_model extends CI_Model
         // Assuming you have a table named 'products' in your database
         $this->db->where('mpc_name', $productName);
         $query = $this->db->get('mst_product_code');
+        // If there is a row with the given product name, return true
+        return $query->num_rows() > 0;
+    }
+    public function checkBrandExists($BrandName) {
+        // Assuming you have a table named 'products' in your database
+        $this->db->where('mb_name', $BrandName);
+        $query = $this->db->get('mst_brand');
 
         // If there is a row with the given product name, return true
         return $query->num_rows() > 0;
