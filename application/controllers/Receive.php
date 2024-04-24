@@ -129,23 +129,38 @@ class Receive extends CI_Controller {
     } 
 
     public function insertProduct(){
-        $productName = $this->input->post('Product');
+        $productName = $this->input->post('product');
+        $BrandName = $this->input->post('brand');
 
         // Check if the product name already exists in the database
         $productExists = $this->sim->checkProductExists($productName);
-    
+        $brandExists = $this->sim->checkBrandExists($BrandName);
         // If product exists, return an alert
         if($productExists) {
             echo json_encode(array('success' => 'false'));
             return;
         }
+        if($brandExists) {
+            echo json_encode(array('success' => 'falseBrand'));
+            return;
+        }else{
+            $databBrand = [
+                'mb_name' => $BrandName,
+                'mb_status_flg' => '1',
+            ];
+            $this->sim->insertBrand($databBrand);
+            $maxValue = $this->sim->getMaxValue();
+        }
+
         $data = [
             'mpc_name' => $productName,
             'mib_id' => $this->input->post('index'),
-            'mb_id' => $this->input->post('brand'),
-            'mpc_model' => $this->input->post('Model'),
+            'mb_id' => $maxValue,
+            'mpc_model' => $this->input->post('model'),
             'mpc_discription' => $this->input->post('dis'),
             'mpc_status_flg' => '1',
+            'mpc_unit' => $this->input->post('unit'),
+            'mpc_sell_price' => $this->input->post('unitprice'),
         ];
 
         $dataIndex = [
@@ -154,6 +169,21 @@ class Receive extends CI_Controller {
             'mib_status_flg' => '1',
         ];
 
+//         $this->load->library('upload');
+
+// $target_dir = "./assets/img/";
+// $target_file = $target_dir . basename($_FILES["file_product"]["name"]);
+
+// if (move_uploaded_file($_FILES["file_product"]["tmp_name"], $target_file)) {
+    $file_product = $_FILES['file_product']['name'];
+    $data['mpc_img'] = $file_product;
+   // Store the file name in your database
+// } else {
+//     echo json_encode(array('success' => 'filee', 'message' => $target_file . 'Error uploading file.'));
+//     return;
+// }
+
+        
         $this->sim->insertProduct($data);
         $this->sim->insertIndex($dataIndex);
         echo json_encode(array('success' => 'true'));
