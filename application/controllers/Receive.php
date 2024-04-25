@@ -137,18 +137,25 @@ class Receive extends CI_Controller {
     public function insertProduct(){
         $productName = $this->input->post('product');
         $BrandName = $this->input->post('brand');
+        $ModelName = $this->input->post('model');
 
         // Check if the product name already exists in the database
         $productExists = $this->sim->checkProductExists($productName);
         $brandExists = $this->sim->checkBrandExists($BrandName);
+        $ModelExists = $this->sim->checkModelExists($ModelName);
         // If product exists, return an alert
+        // var_dump($brandExists);exit();
         if($productExists) {
             echo json_encode(array('success' => 'false'));
             return;
         }
-        if($brandExists) {
-            echo json_encode(array('success' => 'falseBrand'));
+        if($ModelExists) {
+            echo json_encode(array('success' => 'falseModel'));
             return;
+        }
+        $maxValue = 0;
+        if($brandExists !== NULL) {
+           $maxValue = $brandExists;
         }else{
             $databBrand = [
                 'mb_name' => $BrandName,
@@ -162,7 +169,7 @@ class Receive extends CI_Controller {
             'mpc_name' => $productName,
             'mib_id' => $this->input->post('index'),
             'mb_id' => $maxValue,
-            'mpc_model' => $this->input->post('model'),
+            'mpc_model' => $ModelName,
             'mpc_discription' => $this->input->post('dis'),
             'mpc_status_flg' => '1',
             'mpc_unit' => $this->input->post('unit'),
