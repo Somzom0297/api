@@ -450,6 +450,7 @@ class stockinfo_model extends CI_Model
                             mpc_discription,
                             mpc_name,
                             mib_number,
+                            mpc_unit,
                             mst_index_box.mib_id,
                             mst_brand.mb_id,
                             mib_size,
@@ -774,13 +775,26 @@ class stockinfo_model extends CI_Model
         // If there is a row with the given product name, return true
         return $query->num_rows() > 0;
     }
-    public function checkBrandExists($BrandName) {
+    public function checkModelExists($modelName) {
         // Assuming you have a table named 'products' in your database
-        $this->db->where('mb_name', $BrandName);
-        $query = $this->db->get('mst_brand');
-
+        $this->db->where('mpc_model', $modelName);
+        $query = $this->db->get('mst_product_code');
         // If there is a row with the given product name, return true
         return $query->num_rows() > 0;
+    }
+    public function checkBrandExists($BrandName) {    
+        $this->db->select('mb_id'); // Select only the ID
+        $this->db->where('mb_name', $BrandName);
+        $query = $this->db->get('mst_brand');
+    
+        // If there is a row with the given brand name, return the ID
+        if ($query->num_rows() > 0) {
+            $row = $query->row();
+            return $row->mb_id;
+        } else {
+            // If no brand found, return null or handle the situation accordingly
+            return null;
+        }
     }
 
     public function update_flg($data)
