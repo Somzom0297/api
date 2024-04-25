@@ -107,6 +107,12 @@ class Receive extends CI_Controller {
         echo json_encode($result);
     } 
 
+    public function getModelByIdPname(){
+        $id = $this->input->post('id');
+        $result = $this->sim->getModelByIdPname($id);
+        echo json_encode($result);
+    } 
+
     public function showProductIssue(){
         $result = $this->sim->getProductIssue();
         echo json_encode($result);
@@ -283,6 +289,7 @@ class Receive extends CI_Controller {
     }
 
     public function insertIssue() {
+
         $data = [
             'isd_id' => $this->input->post('isd_id'),
             'isi_document' => $this->input->post('doc_number'),

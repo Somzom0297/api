@@ -167,6 +167,7 @@ class stockinfo_model extends CI_Model
                 isd_inv_date,
                 isd_inv_no,
                 isd_po_number,
+                mpc.mpc_img,
                 mpc.mpc_discription,
                 isd.isd_id,
                 isd_po_date,
@@ -454,6 +455,7 @@ class stockinfo_model extends CI_Model
                             mib_size,
                             mb_name,
                             isd_id,
+                            mpc_cost_price,
                             (SUM(isd_qty) - ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id )) as total
 
                             
@@ -462,6 +464,35 @@ class stockinfo_model extends CI_Model
                             LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
                             LEFT JOIN info_stock_detail ON info_stock_detail.mpc_id = mst_product_code.mpc_id
                             WHERE mst_product_code.mpc_id = '$id'
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+    
+
+    public function getModelByIdPname($id)
+    {
+        $sql = "SELECT 
+                            mpc_model,
+                            mpc_discription,
+                            mpc_name,
+                            mib_number,
+                            mst_index_box.mib_id,
+                            mst_brand.mb_id,
+                            mib_size,
+                            mb_name,
+                            isd_id,
+                            mpc_cost_price,
+                            (SUM(isd_qty) - ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id )) as total
+
+                            
+                            FROM  mst_product_code
+                            LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
+                            LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
+                            LEFT JOIN info_stock_detail ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+                            WHERE mst_product_code.mpc_name = '$id'
                 ";
 
         $query = $this->db->query($sql);
