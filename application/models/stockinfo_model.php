@@ -159,6 +159,7 @@ class stockinfo_model extends CI_Model
         $sql = "SELECT 
                 isi_document,
                 isi_document_date,
+                mpc.mpc_img,
                 mb.mb_name,
 				mpc.mpc_name,
 				mpc.mpc_model,
