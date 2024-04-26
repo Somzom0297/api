@@ -160,6 +160,7 @@ class stockinfo_model extends CI_Model
 				isi_priceofunit,
 				isi_purchase_order,
 				isd_customer,
+                isi_customer,
 				isi_invoice,
 				isi_invoice_date,
 				mib_number,
@@ -317,6 +318,7 @@ class stockinfo_model extends CI_Model
 
         $sql = "SELECT
                     mb_name,
+                    mpc_img,
                     mpc_name,
                     mpc_model,
                     mpc_discription,
@@ -340,6 +342,19 @@ class stockinfo_model extends CI_Model
                     mpc_id,
                     mpc_name
                 FROM  mst_product_code
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+    public function getSelProductCodebyID($data)
+    {
+        $sql = "SELECT 
+                    mpc_id,
+                    mpc_name
+                FROM  mst_product_code
+                WHERE mpc_id = '$data'
                 ";
 
         $query = $this->db->query($sql);
@@ -402,6 +417,25 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
+    public function getListProduct()
+    {
+        $sql = "SELECT 
+                    mpc_id,
+                    mpc_img,
+                    mb_name,
+                    mpc_name,
+                    mpc_model,
+                    mpc_discription
+
+                FROM  mst_product_code
+                LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
     public function getSelIndexBox()
     {
         $sql = "SELECT 
@@ -446,6 +480,7 @@ class stockinfo_model extends CI_Model
     public function getModelById($id)
     {
         $sql = "SELECT 
+                            mpc_img,
                             mpc_model,
                             mpc_discription,
                             mpc_name,

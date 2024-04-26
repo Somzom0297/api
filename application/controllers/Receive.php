@@ -22,7 +22,7 @@ class Receive extends CI_Controller {
         //  exit;
         echo json_encode($result);
     } 
-    
+    //////
     public function getIssueInfo(){
         $year = $this->input->post('year');
         $month = $this->input->post('month');
@@ -129,8 +129,14 @@ class Receive extends CI_Controller {
         echo json_encode($result);
     } 
 
+
     public function getIndexSize(){
         $result = $this->sim->getIndexSize();
+        echo json_encode($result);
+    } 
+
+    public function showListProduct(){
+        $result = $this->sim->getListProduct();
         echo json_encode($result);
     } 
 
@@ -173,7 +179,7 @@ class Receive extends CI_Controller {
             'mpc_discription' => $this->input->post('dis'),
             'mpc_status_flg' => '1',
             'mpc_unit' => $this->input->post('unit'),
-            'mpc_sell_price' => $this->input->post('unitprice'),
+            'mpc_cost_price' => $this->input->post('unitprice'),
         ];
 
         $dataIndex = [
@@ -229,6 +235,14 @@ class Receive extends CI_Controller {
 
     public function getSelProductCode(){
         $result = $this->sim->getSelProductCode();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+    public function getSelProductCodebyID(){
+        $id = $this->input->post('id');
+        $result = $this->sim->getSelProductCodebyID($id);
         //  echo "<pre>";
         // print_r($result);
         //  exit;
