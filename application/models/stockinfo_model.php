@@ -38,13 +38,20 @@ class stockinfo_model extends CI_Model
         info_stock_detail.*,
         mst_product_code.*,
         mst_brand.*,
-        (SUM(isd_qty) - ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id )) as qtyy
-        FROM
-            mst_product_code
-        
-              LEFT JOIN info_stock_detail ON mst_product_code.mpc_id = info_stock_detail.mpc_id
-                    LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
-        GROUP BY mst_product_code.mpc_id";
+        SUM(COALESCE(info_stock_detail.isd_qty, 0)) - COALESCE((
+            SELECT
+                SUM(COALESCE(isiiner.isi_qty, 0)) AS total_qty
+            FROM
+                info_stock_issue isiiner
+            WHERE
+                info_stock_detail.isd_id = isiiner.isd_id
+        ), 0) AS qtyy 
+    FROM
+        mst_product_code
+        LEFT JOIN info_stock_detail ON mst_product_code.mpc_id = info_stock_detail.mpc_id
+        LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id 
+    GROUP BY
+        mst_product_code.mpc_id";
 
             $query = $this->db->query($sql);
             $data = $query->result();
@@ -511,24 +518,33 @@ class stockinfo_model extends CI_Model
     public function getModelByIdPname($id)
     {
         $sql = "SELECT 
-                            mpc_model,
-                            mpc_discription,
-                            mpc_name,
-                            mib_number,
-                            mst_index_box.mib_id,
-                            mst_brand.mb_id,
-                            mib_size,
-                            mb_name,
-                            isd_id,
-                            mpc_cost_price,
-                            (SUM(isd_qty) - ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id )) as total
+        mpc_model,
+        mpc_discription,
+        mpc_name,
+        mib_number,
+        mst_index_box.mib_id,
+        mst_brand.mb_id,
+        mib_size,
+        mb_name,
+        isd_id,
+        mpc_cost_price,
+        (SUM( isd_qty ) 	- (
+SELECT
+COALESCE(SUM(isiiner.isi_qty), 0) AS total_qty
+FROM
+info_stock_detail
+LEFT JOIN info_stock_issue isiiner ON info_stock_detail.isd_id = isiiner.isd_id 
+WHERE
+info_stock_detail.mpc_id = info_stock_detail.mpc_id
+GROUP BY info_stock_detail.mpc_id
+)) AS total
 
-                            
-                            FROM  mst_product_code
-                            LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
-                            LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
-                            LEFT JOIN info_stock_detail ON info_stock_detail.mpc_id = mst_product_code.mpc_id
-                            WHERE mst_product_code.mpc_name = '$id'
+        
+        FROM  mst_product_code
+        LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
+        LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
+        LEFT JOIN info_stock_detail ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+        WHERE mst_product_code.mpc_name = '$id'
                 ";
 
         $query = $this->db->query($sql);
@@ -579,6 +595,7 @@ class stockinfo_model extends CI_Model
         mpc.mpc_model,
         mpc.mpc_discription,
         lsi.isd_id,
+        lsi_id,
         isi_document,
         isi_document_date,
         isi_invoice,
@@ -715,6 +732,15 @@ class stockinfo_model extends CI_Model
 
         // Check if the delete operation was successful
         return 1;
+    }
+    public function getDeleteIssueConfirm($id)
+    {
+        // Perform the delete operation
+        $this->db->where('lsi_id', $id);
+        $this->db->delete('log_stock_issue');
+
+        // Check if the delete operation was successful
+        return true;
     }
 
     public function show_drop_down()
