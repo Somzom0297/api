@@ -175,7 +175,6 @@ class stockinfo_model extends CI_Model
                 isd_inv_date,
                 isd_inv_no,
                 isd_po_number,
-                mpc.mpc_img,
                 mpc.mpc_discription,
                 isd.isd_id,
                 isd_po_date,
@@ -492,13 +491,11 @@ class stockinfo_model extends CI_Model
                             mpc_discription,
                             mpc_name,
                             mib_number,
-                            mpc_unit,
                             mst_index_box.mib_id,
                             mst_brand.mb_id,
                             mib_size,
                             mb_name,
                             isd_id,
-                            mpc_cost_price,
                             (SUM(isd_qty) - ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id )) as total
 
                             
@@ -513,6 +510,7 @@ class stockinfo_model extends CI_Model
         $data = $query->result();
         return $data;
     }
+    
     
 
     public function getModelByIdPname($id)
@@ -551,6 +549,7 @@ GROUP BY info_stock_detail.mpc_id
         $data = $query->result();
         return $data;
     }
+
 
     public function getProductIssue(){
         $sql = "SELECT DISTINCT
@@ -836,26 +835,13 @@ GROUP BY info_stock_detail.mpc_id
         // If there is a row with the given product name, return true
         return $query->num_rows() > 0;
     }
-    public function checkModelExists($modelName) {
+    public function checkBrandExists($BrandName) {
         // Assuming you have a table named 'products' in your database
-        $this->db->where('mpc_model', $modelName);
-        $query = $this->db->get('mst_product_code');
-        // If there is a row with the given product name, return true
-        return $query->num_rows() > 0;
-    }
-    public function checkBrandExists($BrandName) {    
-        $this->db->select('mb_id'); // Select only the ID
         $this->db->where('mb_name', $BrandName);
         $query = $this->db->get('mst_brand');
-    
-        // If there is a row with the given brand name, return the ID
-        if ($query->num_rows() > 0) {
-            $row = $query->row();
-            return $row->mb_id;
-        } else {
-            // If no brand found, return null or handle the situation accordingly
-            return null;
-        }
+
+        // If there is a row with the given product name, return true
+        return $query->num_rows() > 0;
     }
 
     public function update_flg($data)
