@@ -22,7 +22,7 @@ class Receive extends CI_Controller {
         //  exit;
         echo json_encode($result);
     } 
-    
+    //////
     public function getIssueInfo(){
         $year = $this->input->post('year');
         $month = $this->input->post('month');
