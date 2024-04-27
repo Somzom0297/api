@@ -348,10 +348,19 @@ class Receive extends CI_Controller {
         return json_encode($response);
 
     }
+
     public function deleteReceive() {
         $isd_id = $this->input->post('id');
         // var_dump($data);exit();
         $response = $this->sim->getDeleteReceive($isd_id);
+
+        echo json_encode(['success' => true]);
+
+    }
+    public function deleteIssueConfirm() {
+        $isi_id = $this->input->get('id');
+        // var_dump($data);exit();
+        $this->sim->getDeleteIssueConfirm($isi_id);
 
         echo json_encode(['success' => true]);
 
