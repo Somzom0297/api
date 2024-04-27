@@ -57,6 +57,7 @@ class stockinfo_model extends CI_Model
             $data = $query->result();
             return $data;
     }
+
     public function getReceiveInfo($year, $month)
     {
         $sql = "SELECT 
@@ -74,6 +75,7 @@ class stockinfo_model extends CI_Model
         $data = $query->result();
         return $data;
     }
+
     public function getIssueInfo($year, $month)
     {
         $sql = "SELECT 
@@ -95,9 +97,11 @@ class stockinfo_model extends CI_Model
         $sql = "SELECT 
         isi_document,
         isi_document_date,
+        
         COUNT(isd_id) as total
         FROM  info_stock_issue as isi
         WHERE YEAR(isi_document_date) = '$year'
+        
         GROUP BY isi_document_date
                 ";
 
@@ -373,13 +377,59 @@ class stockinfo_model extends CI_Model
     {
         $sql = "SELECT 
                     mb_id,
-                    mb_name
+                   mb_name,
+                   sys_account.sa_firstname,
+                   sys_account.sa_lastname,
+                   mb_created_date,
+                   mb_status_flg
                 FROM  mst_brand
+                LEFT JOIN sys_account ON sys_account.sa_id = mst_brand.mb_created_by
+                WHERE mb_status_flg = 1
                 ";
 
         $query = $this->db->query($sql);
         $data = $query->result();
         return $data;
+    }
+    public function getBrandListAll()
+    {
+        $sql = "SELECT 
+                    mb_id,
+                   mb_name,
+                   sys_account.sa_firstname,
+                   sys_account.sa_lastname,
+                   mb_created_date,
+                   mb_status_flg
+                FROM  mst_brand
+                LEFT JOIN sys_account ON sys_account.sa_id = mst_brand.mb_created_by
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+    public function getBrand($id)
+    {
+        $sql = "SELECT 
+                mb_id,
+                mb_name
+                FROM  mst_brand
+                WHERE mb_id = '$id'
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
+    public function updateBrand($id, $data) {
+        $this->db->where('mb_id', $id);
+        return $this->db->update('mst_brand', $data);
+    }
+
+    public function updateStautus($id, $data) {
+        $this->db->where('mb_id', $id);
+        return $this->db->update('mst_brand', $data);
     }
 
     public function getIndexAll()
@@ -497,6 +547,8 @@ class stockinfo_model extends CI_Model
                             mib_size,
                             mb_name,
                             isd_id,
+                            mpc_unit,
+                            mpc_cost_price,
                             (SUM(isd_qty) - ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id )) as total
 
                             
@@ -527,16 +579,14 @@ class stockinfo_model extends CI_Model
         mb_name,
         isd_id,
         mpc_cost_price,
-        (SUM( isd_qty ) 	- (
-SELECT
-COALESCE(SUM(isiiner.isi_qty), 0) AS total_qty
-FROM
-info_stock_detail
-LEFT JOIN info_stock_issue isiiner ON info_stock_detail.isd_id = isiiner.isd_id 
-WHERE
-info_stock_detail.mpc_id = info_stock_detail.mpc_id
-GROUP BY info_stock_detail.mpc_id
-)) AS total
+        SUM(COALESCE(info_stock_detail.isd_qty, 0)) - COALESCE((
+            SELECT
+                SUM(COALESCE(isiiner.isi_qty, 0)) AS total_qty
+            FROM
+                info_stock_issue isiiner
+            WHERE
+                info_stock_detail.isd_id = isiiner.isd_id
+        ), 0) AS total
 
         
         FROM  mst_product_code
@@ -563,8 +613,14 @@ GROUP BY info_stock_detail.mpc_id
                     mib_number,
                     mib_size,
                     info_stock_detail.isd_id,
-                    ( SELECT SUM( isd_qty ) FROM info_stock_detail WHERE info_stock_detail.mpc_id = mst_product_code.mpc_id ) AS qty,
-                    ( SELECT SUM( isi_qty ) FROM info_stock_issue LEFT JOIN info_stock_detail isdiner ON isdiner.isd_id = info_stock_issue.isd_id WHERE info_stock_detail.mpc_id = info_stock_detail.mpc_id ) AS out_qty 
+                    SUM(COALESCE(info_stock_detail.isd_qty, 0)) - COALESCE((
+            SELECT
+                SUM(COALESCE(isiiner.isi_qty, 0)) AS total_qty
+            FROM
+                info_stock_issue isiiner
+            WHERE
+                info_stock_detail.isd_id = isiiner.isd_id
+        ), 0) AS qtyy 
                 FROM
                     mst_product_code
                 LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
@@ -579,7 +635,7 @@ GROUP BY info_stock_detail.mpc_id
                     mpc_model,
                     mpc_discription,
                     mib_number,
-                    mib_size;
+                    mib_size
                 ";
 
         $query = $this->db->query($sql);
@@ -683,6 +739,7 @@ GROUP BY info_stock_detail.mpc_id
         // Check if insert was successful
         return $this->db->affected_rows() > 0 ? true : false;
     }
+
     public function insertIndex($data)
     {
         // Perform database insert operation
@@ -691,6 +748,7 @@ GROUP BY info_stock_detail.mpc_id
         // Check if insert was successful
         return $this->db->affected_rows() > 0 ? true : false;
     }
+
 
     public function insertIssue($data)
     {

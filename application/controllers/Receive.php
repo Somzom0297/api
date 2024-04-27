@@ -124,6 +124,17 @@ class Receive extends CI_Controller {
         echo json_encode($result);
     } 
 
+    public function getBrand(){
+        $brand_id = $this->input->post('brand_id');
+        $result = $this->sim->getBrand($brand_id);
+        echo json_encode($result);
+    } 
+
+    public function ListBrandDetail(){
+        $result = $this->sim->getBrandListAll();
+        echo json_encode($result);
+    } 
+
     public function getIndexAll(){
         $result = $this->sim->getIndexAll();
         echo json_encode($result);
@@ -206,6 +217,57 @@ class Receive extends CI_Controller {
         $this->sim->insertProduct($data);
         $this->sim->insertIndex($dataIndex);
         echo json_encode(array('success' => 'true'));
+    } 
+
+    public function insertBrand(){
+        $mb_name = $this->input->post('mb_name');
+        $userID = $this->input->post('userID');
+        $brandExists = $this->sim->checkBrandExists($mb_name);
+
+        if($brandExists) {
+            echo json_encode(array('success' => 'false'));
+            return;
+        }
+        $formatted_data = [
+            'mb_name' => $mb_name, // Assuming 'mb_name' holds the value you need
+            'mb_status_flg' => '1', // Assuming 'mb_name' holds the value you need
+            'mb_created_by' => $userID, // Assuming 'username' holds the value you need
+            'mb_created_date' => date('Y-m-d H:i:s'), // Assuming 'username' holds the value you need
+        ];
+        // Now you can use $formatted_data for further processing, such as database insertion
+        // For example:
+        $this->sim->insertBrand($formatted_data);
+        echo json_encode(array('success' => 'true'));
+    } 
+
+    public function updateBrand(){
+        $mb_name = $this->input->post('mb_name');
+        $brandid = $this->input->post('brandid');
+        $brandExists = $this->sim->checkBrandExists($mb_name);
+
+        if($brandExists) {
+            echo json_encode(array('success' => 'false'));
+            return;
+        }
+        $formatted_data = [
+            'mb_name' => $mb_name, // Assuming 'mb_name' holds the value you need
+            'mb_created_date' => date('Y-m-d H:i:s'), // Assuming 'username' holds the value you need
+        ];
+        // Now you can use $formatted_data for further processing, such as database insertion
+        // For example:
+        $this->sim->updateBrand($brandid,$formatted_data);
+        echo json_encode(array('success' => 'true'));
+    } 
+
+    public function updateStautus(){
+        $mb_id = $this->input->post('mb_id');
+        $formatted_data = [
+            'mb_status_flg' => $this->input->post('status'), // Assuming 'mb_name' holds the value you need
+        ];
+        // Now you can use $formatted_data for further processing, such as database insertion
+        // For example:
+        $result = $this->sim->updateStautus($mb_id,$formatted_data);
+        echo json_encode($result);
     } 
 
     public function ListProductDetail(){
