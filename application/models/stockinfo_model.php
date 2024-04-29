@@ -51,7 +51,8 @@ class stockinfo_model extends CI_Model
         LEFT JOIN info_stock_detail ON mst_product_code.mpc_id = info_stock_detail.mpc_id
         LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id 
     GROUP BY
-        mst_product_code.mpc_id";
+        mst_product_code.mpc_id
+        ORDER BY qtyy DESC";
 
             $query = $this->db->query($sql);
             $data = $query->result();
@@ -81,10 +82,13 @@ class stockinfo_model extends CI_Model
         $sql = "SELECT 
         isi_document,
         isi_document_date,
-        COUNT(isd_id) as total
+        COUNT(isd_id) as total,
+        sys_account.sa_firstname,
+        sys_account.sa_lastname
         FROM  info_stock_issue as isi
+        LEFT JOIN sys_account ON sys_account.sa_id = isi.isi_created_by
         WHERE YEAR(isi_document_date) = '$year' AND MONTH(isi_document_date) = '$month'
-        GROUP BY isi_document_date
+        GROUP BY isi_document
                 ";
 
         $query = $this->db->query($sql);
@@ -97,12 +101,14 @@ class stockinfo_model extends CI_Model
         $sql = "SELECT 
         isi_document,
         isi_document_date,
-        
+        sys_account.sa_firstname,
+        sys_account.sa_lastname,
         COUNT(isd_id) as total
         FROM  info_stock_issue as isi
+        LEFT JOIN sys_account ON sys_account.sa_id = isi.isi_created_by
         WHERE YEAR(isi_document_date) = '$year'
         
-        GROUP BY isi_document_date
+        GROUP BY isi_document
                 ";
 
         $query = $this->db->query($sql);
@@ -117,8 +123,11 @@ class stockinfo_model extends CI_Model
                 isd_inv_date,
                 isd_inv_no,
                 isd_po_number, 
+                sys_account.sa_firstname,
+                sys_account.sa_lastname,
                 COUNT(isd_inv_no) as total
                 FROM  info_stock_detail as isd
+                LEFT JOIN sys_account ON sys_account.sa_id = isd.isd_created_by
                 WHERE YEAR(isd_inv_date) = '$year'
                 GROUP BY isd_inv_no
                 ";
@@ -145,11 +154,14 @@ class stockinfo_model extends CI_Model
                     isd_po_date,
                     isd_doc_date,
                     isd_qty,
+                    sys_account.sa_firstname,
+                    sys_account.sa_lastname,
                     isd_price_unit
 
                 FROM  info_stock_detail as isd
                 LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
                 LEFT JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
+                LEFT JOIN sys_account ON sys_account.sa_id = isd.isd_created_by
                     where isd_inv_no = '$data'
                 ";
 
@@ -176,7 +188,7 @@ class stockinfo_model extends CI_Model
 				isi_invoice,
 				isi_invoice_date,
 				mib_number,
-				mib_size
+				mib_size,
                 isd_inv_date,
                 isd_inv_no,
                 isd_po_number,
@@ -185,12 +197,15 @@ class stockinfo_model extends CI_Model
                 isd_po_date,
                 isd_doc_date,
                 isd_qty,
+                sys_account.sa_firstname,
+                    sys_account.sa_lastname,
 				isd_price_unit
         FROM  info_stock_issue as isi
         LEFT JOIN info_stock_detail isd ON isi.isd_id = isd.isd_id
         LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
         LEFT JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
 	    LEFT JOIN mst_index_box ON mst_index_box.mib_id = mpc.mib_id
+        LEFT JOIN sys_account ON sys_account.sa_id = isi.isi_created_by
         where isi_document = '$data'
                 ";
 
@@ -212,6 +227,8 @@ class stockinfo_model extends CI_Model
                     isd.isd_doc_number,
                     isd.isd_doc_date,
                     isd.isd_qty,
+                    sys_account.sa_firstname,
+                    sys_account.sa_lastname,
                     (
                         SELECT SUM(isd_qty) 
                         FROM info_stock_detail 
@@ -223,6 +240,7 @@ class stockinfo_model extends CI_Model
                 LEFT JOIN mst_product_code mpc ON mpc.mpc_id = isd.mpc_id
                 LEFT JOIN mst_index_box mib ON mib.mib_id = mpc.mib_id
                 LEFT JOIN mst_brand mb ON mb.mb_id = mpc.mb_id
+                LEFT JOIN sys_account ON sys_account.sa_id = isd.isd_created_by
                     where isd.mpc_id = '$id'
                 ";
 
@@ -567,7 +585,7 @@ class stockinfo_model extends CI_Model
     
 
     public function getModelByIdPname($id)
-    {
+        {
         $sql = "SELECT 
         mpc_model,
         mpc_discription,
@@ -577,8 +595,8 @@ class stockinfo_model extends CI_Model
         mst_brand.mb_id,
         mib_size,
         mb_name,
-        isd_id,
         mpc_cost_price,
+       info_stock_detail.isd_id,
         SUM(COALESCE(info_stock_detail.isd_qty, 0)) - COALESCE((
             SELECT
                 SUM(COALESCE(isiiner.isi_qty, 0)) AS total_qty
@@ -586,14 +604,32 @@ class stockinfo_model extends CI_Model
                 info_stock_issue isiiner
             WHERE
                 info_stock_detail.isd_id = isiiner.isd_id
-        ), 0) AS total
-
-        
-        FROM  mst_product_code
+            ), 0) - COALESCE((
+            SELECT
+                SUM(COALESCE(log.isi_qty, 0)) AS total_qtyy
+            FROM
+                log_stock_issue log
+            WHERE
+                info_stock_detail.isd_id = log.isd_id
+                AND log.lsi_status_flg = '0'
+            ), 0) AS total 
+    
+        FROM
+            mst_product_code
         LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
         LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
         LEFT JOIN info_stock_detail ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+        LEFT JOIN info_stock_issue ON info_stock_detail.isd_id = info_stock_issue.isd_id 
         WHERE mst_product_code.mpc_name = '$id'
+        GROUP BY
+        mst_product_code.mpc_id,
+        mpc_img,
+        mb_name,
+        mpc_name,
+        mpc_model,
+        mpc_discription,
+        mib_number,
+        mib_size
                 ";
 
         $query = $this->db->query($sql);
@@ -601,41 +637,49 @@ class stockinfo_model extends CI_Model
         return $data;
     }
 
-
     public function getProductIssue(){
         $sql = "SELECT DISTINCT
-                    mst_product_code.mpc_id,
-                    mpc_img,
-                    mb_name,
-                    mpc_name,
-                    mpc_model,
-                    mpc_discription,
-                    mib_number,
-                    mib_size,
-                    info_stock_detail.isd_id,
-                    SUM(COALESCE(info_stock_detail.isd_qty, 0)) - COALESCE((
-            SELECT
-                SUM(COALESCE(isiiner.isi_qty, 0)) AS total_qty
-            FROM
-                info_stock_issue isiiner
-            WHERE
-                info_stock_detail.isd_id = isiiner.isd_id
-        ), 0) AS qtyy 
-                FROM
-                    mst_product_code
-                LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
-                LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
-                LEFT JOIN info_stock_detail ON info_stock_detail.mpc_id = mst_product_code.mpc_id
-                LEFT JOIN info_stock_issue ON info_stock_detail.isd_id = info_stock_issue.isd_id 
-                GROUP BY
-                    mst_product_code.mpc_id,
-                    mpc_img,
-                    mb_name,
-                    mpc_name,
-                    mpc_model,
-                    mpc_discription,
-                    mib_number,
-                    mib_size
+        mst_product_code.mpc_id,
+        mpc_img,
+        mb_name,
+        mpc_name,
+        mpc_model,
+        mpc_discription,
+        mib_number,
+        mib_size,
+        info_stock_detail.isd_id,
+        SUM(COALESCE(info_stock_detail.isd_qty, 0)) - COALESCE((
+SELECT
+    SUM(COALESCE(isiiner.isi_qty, 0)) AS total_qty
+FROM
+    info_stock_issue isiiner
+WHERE
+    info_stock_detail.isd_id = isiiner.isd_id
+), 0) - COALESCE((
+SELECT
+    SUM(COALESCE(log.isi_qty, 0)) AS total_qtyy
+FROM
+    log_stock_issue log
+WHERE
+    info_stock_detail.isd_id = log.isd_id
+    AND log.lsi_status_flg = '0'
+), 0) AS qtyy 
+    
+    FROM
+        mst_product_code
+    LEFT JOIN mst_index_box ON mst_index_box.mib_id = mst_product_code.mib_id
+    LEFT JOIN mst_brand ON mst_brand.mb_id = mst_product_code.mb_id
+    LEFT JOIN info_stock_detail ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+    LEFT JOIN info_stock_issue ON info_stock_detail.isd_id = info_stock_issue.isd_id 
+    GROUP BY
+        mst_product_code.mpc_id,
+        mpc_img,
+        mb_name,
+        mpc_name,
+        mpc_model,
+        mpc_discription,
+        mib_number,
+        mib_size
                 ";
 
         $query = $this->db->query($sql);
@@ -677,7 +721,7 @@ class stockinfo_model extends CI_Model
     }
 
     public function insertIssueConfirm(){
-        $sql = "INSERT INTO info_stock_issue (isd_id, isi_document, isi_document_date,isi_invoice,isi_invoice_date,isi_purchase_order,isi_purchase_order_date,isi_qty,isi_customer,isi_priceofunit,isi_unit_type)
+        $sql = "INSERT INTO info_stock_issue (isd_id, isi_document, isi_document_date,isi_invoice,isi_invoice_date,isi_purchase_order,isi_purchase_order_date,isi_qty,isi_customer,isi_priceofunit,isi_unit_type,isi_created_by)
         SELECT 
             isd_id,
             isi_document,
@@ -689,7 +733,8 @@ class stockinfo_model extends CI_Model
             isi_qty,
             isi_customer,
             isi_priceofunit,
-            isi_unit_type
+            isi_unit_type,
+            isi_created_by  
         FROM 
             log_stock_issue
         WHERE 
@@ -898,6 +943,14 @@ class stockinfo_model extends CI_Model
         // Assuming you have a table named 'products' in your database
         $this->db->where('mb_name', $BrandName);
         $query = $this->db->get('mst_brand');
+
+        // If there is a row with the given product name, return true
+        return $query->num_rows() > 0;
+    }
+    public function checkModelExists($ModelName) {
+        // Assuming you have a table named 'products' in your database
+        $this->db->where('mpc_name', $ModelName);
+        $query = $this->db->get('mst_product_code');
 
         // If there is a row with the given product name, return true
         return $query->num_rows() > 0;
