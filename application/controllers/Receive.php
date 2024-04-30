@@ -5,9 +5,12 @@ class Receive extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
+        // $this->load->library('Pdf'); // Ensure the library name matches the filename
         $this->load->model('stockinfo_model', 'sim');
     }
     
+
+
     public function getReceiveInfo(){
         $year = $this->input->post('year');
         $month = $this->input->post('month');
@@ -153,12 +156,10 @@ class Receive extends CI_Controller {
 
     public function insertProduct(){
         $productName = $this->input->post('product');
-        $BrandName = $this->input->post('brand');
         $ModelName = $this->input->post('model');
 
         // Check if the product name already exists in the database
         $productExists = $this->sim->checkProductExists($productName);
-        $brandExists = $this->sim->checkBrandExists($BrandName);
         $ModelExists = $this->sim->checkModelExists($ModelName);
         // If product exists, return an alert
         // var_dump($brandExists);exit();
@@ -170,22 +171,11 @@ class Receive extends CI_Controller {
             echo json_encode(array('success' => 'falseModel'));
             return;
         }
-        $maxValue = 0;
-        if($brandExists !== NULL) {
-           $maxValue = $brandExists;
-        }else{
-            $databBrand = [
-                'mb_name' => $BrandName,
-                'mb_status_flg' => '1',
-            ];
-            $this->sim->insertBrand($databBrand);
-            $maxValue = $this->sim->getMaxValue();
-        }
 
         $data = [
             'mpc_name' => $productName,
             'mib_id' => $this->input->post('index'),
-            'mb_id' => $maxValue,
+            'mb_id' => $this->input->post('brand'),
             'mpc_model' => $ModelName,
             'mpc_discription' => $this->input->post('dis'),
             'mpc_status_flg' => '1',
@@ -386,7 +376,7 @@ class Receive extends CI_Controller {
             'isi_unit_type' => $this->input->post('Unit'),
             'isi_priceofunit' => $this->input->post('price'),
             'lsi_status_flg' => '0',
-
+            'isi_created_by' => $this->input->post('user_id')
         ];
 
         $response = $this->sim->insertIssue($data);
