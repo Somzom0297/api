@@ -101,8 +101,8 @@ class Report extends CI_Controller {
             $pdf->Write(10, '                               ____________________');
             $pdf->Ln();
             $pdf->Write(10, '     ( MISS '.$record->sa_firstname.' '.$record->sa_lastname.' )');
-            $pdf->Write(10, '                                    ( MISS KANJANA BUNTA )');
-            $pdf->Write(10, '                       ( MISS PAPAPRON PIMKROO )');
+            $pdf->Write(10, '                                ( MISS PAPAPRON PIMKROO )');
+            $pdf->Write(10, '                       ( MISS KANJANA BUNTA )');
             $pdf->Ln();
 
             $pdf->Write(10, '    Date____________________ ');
@@ -217,8 +217,8 @@ class Report extends CI_Controller {
             $pdf->Write(10, '                               ____________________');
             $pdf->Ln();
             $pdf->Write(10, '     ( MISS '.$record->sa_firstname.' '.$record->sa_lastname.' )');
-            $pdf->Write(10, '                                    ( MISS KANJANA BUNTA )');
-            $pdf->Write(10, '                       ( MISS PAPAPRON PIMKROO )');
+            $pdf->Write(10, '                                ( MISS PAPAPRON PIMKROO )');
+            $pdf->Write(10, '                       ( MISS KANJANA BUNTA )');
             $pdf->Ln();
 
             $pdf->Write(10, '    Date____________________ ');
@@ -378,7 +378,7 @@ class Report extends CI_Controller {
                $pdf->Cell(40, 10, $record->isd_doc_number, 1, 0, 'C');
                $pdf->Cell(40, 10, $record->isd_doc_date, 1, 0, 'C');
                $pdf->Cell(40, 10, $record->sa_firstname.' '.$record->sa_lastname, 1, 0, 'C');
-               $pdf->Cell(20, 10, $record->isd_qty, 1, 0, 'C');
+               $pdf->Cell(20, 10, $record->mpc_qty, 1, 0, 'C');
                $totalAmount1 = $record->isd_price_unit;
                // Format the total amount with commas and decimal point
                $formattedAmount1 = number_format($totalAmount1, 2, '.', ',');

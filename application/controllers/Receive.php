@@ -326,12 +326,37 @@ class Receive extends CI_Controller {
         echo json_encode($result);
     } 
 
+    public function getTotalProductIssue(){
+        $result = $this->sim->getTotalProductIssue();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+    public function getTotalProduct(){
+        $result = $this->sim->getTotalProduct();
+        //  echo "<pre>";
+        // print_r($result);
+        //  exit;
+        echo json_encode($result);
+    } 
+
+    public function showChart() {
+
+        $result = $this->sim->showChart();
+        // var_dump($response);
+        echo json_encode($result);
+
+    }
+
     public function getselBrand(){
         $result = $this->sim->getselBrand();
         echo json_encode($result);
     } 
 
     public function insertReceive() {
+        $mpc_id = $this->input->post('product_id');
+        $mpc_qty = $this->input->post('qty');
         $data = [
             'isd_doc_number' => $this->input->post('doc_number'),
             'isd_doc_date' => $this->input->post('doc_date'),
@@ -341,21 +366,24 @@ class Receive extends CI_Controller {
             'isd_po_date' => $this->input->post('purchase_order_date'),
             'isd_customer' => $this->input->post('supplier_name'),
             'mb_id' => $this->input->post('brand_id'),
-            'mpc_id' => $this->input->post('product_id'),
+            'mpc_id' => $mpc_id,
             'isd_qty' => $this->input->post('qty'),
             'isd_price_unit' => $this->input->post('price'),
+            'isd_created_by' => $this->input->post('inpUserId'),
+            'isd_created_date' => date('Y-m-d H:i:s'),
 
         ];
-        $file_inventory = $_FILES['file_inventory']['name'];
-        $data['isd_file'] = $file_inventory;
-        $response = $this->sim->insertReceive($data);
 
+        $response = $this->sim->insertReceive($data);
+        $response1 = $this->sim->insertProductQTY($mpc_id,$mpc_qty);
         return json_encode($response);
 
     }
     public function insertIssueConfirm() {
-
+        $qty = $this->input->get('qty');
+        $product_name = $this->input->get('product_name');
         $response = $this->sim->insertIssueConfirm();
+        $response = $this->sim->updateProductQTY($product_name,$qty);
 
         return json_encode($response);
 
@@ -384,6 +412,7 @@ class Receive extends CI_Controller {
         return json_encode($response);
 
     }
+
 
     public function updateReceive() {
         $isd_id = $this->input->post('ProductId');

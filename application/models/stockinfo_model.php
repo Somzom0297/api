@@ -183,6 +183,7 @@ class stockinfo_model extends CI_Model
 				isi_unit_type,
 				isi_priceofunit,
 				isi_purchase_order,
+                isi_purchase_order_date,
 				isd_customer,
                 isi_customer,
 				isi_invoice,
@@ -234,6 +235,7 @@ class stockinfo_model extends CI_Model
                         FROM info_stock_detail 
                         WHERE mpc_id = '$id'
                     ) AS total_qty,
+                    mpc.mpc_qty,
                     isd_price_unit
 
                 FROM  info_stock_detail as isd
@@ -324,6 +326,7 @@ class stockinfo_model extends CI_Model
             mpc.mpc_model,
             mpc.mpc_discription,
             COALESCE(SUM(isd.isd_qty), 0) AS isd_qty,
+            mpc.mpc_qty,
             MIN(isd.isd_created_date) AS isd_created_date
         FROM  
             mst_product_code AS mpc
@@ -597,6 +600,19 @@ class stockinfo_model extends CI_Model
         mb_name,
         mpc_cost_price,
        info_stock_detail.isd_id,
+       (mpc_qty - 
+	COALESCE ((
+	        	SELECT
+	        		SUM(
+	        		COALESCE ( log.isi_qty, 0 )) AS total_qtyyy
+	        	FROM
+	        		log_stock_issue log 
+	        	WHERE
+	        		info_stock_detail.isd_id = log.isd_id 
+	        		AND log.lsi_status_flg = '0' 
+	        		),
+	        	0 
+	        )) AS qtyy,
         SUM(COALESCE(info_stock_detail.isd_qty, 0)) - COALESCE((
             SELECT
                 SUM(COALESCE(isiiner.isi_qty, 0)) AS total_qty
@@ -648,22 +664,19 @@ class stockinfo_model extends CI_Model
         mib_number,
         mib_size,
         info_stock_detail.isd_id,
-        SUM(COALESCE(info_stock_detail.isd_qty, 0)) - COALESCE((
-SELECT
-    SUM(COALESCE(isiiner.isi_qty, 0)) AS total_qty
-FROM
-    info_stock_issue isiiner
-WHERE
-    info_stock_detail.isd_id = isiiner.isd_id
-), 0) - COALESCE((
-SELECT
-    SUM(COALESCE(log.isi_qty, 0)) AS total_qtyy
-FROM
-    log_stock_issue log
-WHERE
-    info_stock_detail.isd_id = log.isd_id
-    AND log.lsi_status_flg = '0'
-), 0) AS qtyy 
+        (mpc_qty - 
+	COALESCE ((
+		SELECT
+			SUM(
+			COALESCE ( log.isi_qty, 0 )) AS total_qtyy 
+		FROM
+			log_stock_issue log 
+		WHERE
+			info_stock_detail.isd_id = log.isd_id 
+			AND log.lsi_status_flg = '0' 
+			),
+		0 
+	)) AS qtyy
     
     FROM
         mst_product_code
@@ -719,32 +732,123 @@ WHERE
         $data = $query->result();
         return $data;
     }
-
-    public function insertIssueConfirm(){
-        $sql = "INSERT INTO info_stock_issue (isd_id, isi_document, isi_document_date,isi_invoice,isi_invoice_date,isi_purchase_order,isi_purchase_order_date,isi_qty,isi_customer,isi_priceofunit,isi_unit_type,isi_created_by)
-        SELECT 
-            isd_id,
-            isi_document,
-            isi_document_date,
-            isi_invoice,
-            isi_invoice_date,
-            isi_purchase_order,
-            isi_purchase_order_date,
-            isi_qty,
-            isi_customer,
-            isi_priceofunit,
-            isi_unit_type,
-            isi_created_by  
-        FROM 
-            log_stock_issue
-        WHERE 
-            lsi_status_flg = '0';
+    public function showChart(){
+        $sql = "SELECT
+            mpc_name,
+           SUM( isi_qty ) as total
+       FROM
+           info_stock_issue
+           LEFT JOIN info_stock_detail ON info_stock_detail.isd_id = info_stock_issue.isd_id
+           LEFT JOIN mst_product_code ON info_stock_detail.mpc_id = mst_product_code.mpc_id
                 ";
-        $sqlUpdate = "UPDATE log_stock_issue SET lsi_status_flg = '1' WHERE lsi_status_flg = '0';";
-        $this->db->query($sql);
-        $this->db->query($sqlUpdate);
-        // $this->db->insert('info_stock_detail', $data);
 
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+
+        
+    }
+    public function getTotalProductIssue(){
+        $sql = "SELECT
+        SUM(total) as totalAll
+    FROM (
+        SELECT
+            SUM(isi_priceofunit * isi_qty) as total
+        FROM
+            info_stock_issue
+            LEFT JOIN info_stock_detail ON info_stock_detail.isd_id = info_stock_issue.isd_id
+            LEFT JOIN mst_product_code ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+        GROUP BY
+            mst_product_code.mpc_id
+    ) AS subquery;
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+
+        
+    }
+    public function getTotalProduct(){
+        $sql = "SELECT
+       SUM( isi_qty ) as total
+   FROM
+       info_stock_issue
+       LEFT JOIN info_stock_detail ON info_stock_detail.isd_id = info_stock_issue.isd_id
+       LEFT JOIN mst_product_code ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+                ";
+
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+
+        
+    }
+
+    public function insertIssueConfirm() {
+        // Retrieve the data to be inserted into info_stock_issue
+        $sqlInsert = "
+            INSERT INTO info_stock_issue (isd_id, isi_document, isi_document_date, isi_invoice, isi_invoice_date, isi_purchase_order, isi_purchase_order_date, isi_qty, isi_customer, isi_priceofunit, isi_unit_type, isi_created_by)
+            SELECT 
+                isd_id,
+                isi_document,
+                isi_document_date,
+                isi_invoice,
+                isi_invoice_date,
+                isi_purchase_order,
+                isi_purchase_order_date,
+                isi_qty,
+                isi_customer,
+                isi_priceofunit,
+                isi_unit_type,
+                isi_created_by  
+            FROM 
+                log_stock_issue
+            WHERE 
+                lsi_status_flg = '0'
+        ";
+    
+        // Execute the insert query
+        $this->db->query($sqlInsert);
+    
+        // Update lsi_status_flg to '1' in log_stock_issue for the records that were inserted
+        $sqlUpdate = "
+            UPDATE log_stock_issue 
+            SET lsi_status_flg = '1' 
+            WHERE lsi_status_flg = '0'
+        ";
+        $this->db->query($sqlUpdate);
+        
+        $sql1 = "SELECT
+        mst_product_code.mpc_id,
+        SUM(info_stock_issue.isi_qty) as total
+    FROM
+        `info_stock_issue`
+    LEFT JOIN info_stock_detail ON info_stock_detail.isd_id = info_stock_issue.isd_id
+    LEFT JOIN mst_product_code ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+    GROUP BY mst_product_code.mpc_id";
+
+// Execute the select query
+    $query1 = $this->db->query($sql1);
+
+    if ($query1->num_rows() > 0) {
+    foreach ($query1->result() as $row) {
+        $mpc_id = $row->mpc_id;
+        $total = $row->total;
+        
+        // Update query to decrement mpc_qty based on the retrieved total
+        $sqlUpdateQty = "
+            UPDATE mst_product_code 
+            SET mpc_qty = mpc_qty - $total 
+            WHERE mpc_id = $mpc_id;
+        ";
+        
+        // Execute the update query
+        $this->db->query($sqlUpdateQty);
+    }
+    }
+    
+        // Check if any rows were affected by the updates
         return $this->db->affected_rows() > 0 ? true : false;
     }
     public function getMaxValue() {
@@ -759,6 +863,38 @@ WHERE
         return $result->mb_id;
     }
 
+    public function insertProductQTY($id, $mpc_qty)
+    {
+        // Perform database update operation
+        $data = array(
+            'mpc_qty' => $mpc_qty, // Set mpc_qty to the given quantity
+        );
+        
+        // Perform the update
+        $this->db->where('mpc_id', $id);
+        $this->db->set('mpc_qty', 'mpc_qty+' . (int)$mpc_qty, FALSE); // Increment mpc_qty by the given quantity
+        $this->db->update('mst_product_code');
+        
+        // Check if update was successful
+        return $this->db->affected_rows() > 0 ? true : false;
+    }
+
+    public function updateProductQTY($id, $mpc_qty)
+    {
+        // Perform database update operation
+        $data = array(
+            'mpc_qty' => $mpc_qty, // Set mpc_qty to the given quantity
+        );
+        
+        // Perform the update
+        $this->db->where('mpc_name', $id);
+        $this->db->set('mpc_qty', 'mpc_qty-' . (int)$mpc_qty, FALSE); // Increment mpc_qty by the given quantity
+        $this->db->update('mst_product_code');
+        
+        // Check if update was successful
+        return $this->db->affected_rows() > 0 ? true : false;
+    }
+    
     public function insertReceive($data)
     {
         // Perform database insert operation
