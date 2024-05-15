@@ -170,11 +170,11 @@ class Report extends CI_Controller {
             $pdf->Ln();
             $pdf->Write(10, 'Customer Name : ' . $data['records'][0]->isi_customer);
             $pdf->Ln();
-            $pdf->Write(10, 'IV : ' . $data['records'][0]->isd_inv_no);
-            $pdf->Write(10, '                   Date : ' . $data['records'][0]->isd_inv_date);
+            $pdf->Write(10, 'IV : ' . $data['records'][0]->isi_invoice);
+            $pdf->Write(10, '                   Date : ' . $data['records'][0]->isi_invoice_date);
             $pdf->Ln();
-            $pdf->Write(10, 'PO : ' . $data['records'][0]->isd_po_number);
-            $pdf->Write(10, '           Date : ' . $data['records'][0]->isd_po_date);
+            $pdf->Write(10, 'PO : ' . $data['records'][0]->isi_purchase_order);
+            $pdf->Write(10, '           Date : ' . $data['records'][0]->isi_purchase_order_date);
             $pdf->Ln();
         
             $pdf->Cell(10, 10, 'NO.', 1, 0, 'C');
@@ -193,12 +193,12 @@ class Report extends CI_Controller {
                 $pdf->Cell(30, 10, $record->mpc_name, 1, 0, 'C');
                 $pdf->Cell(30, 10, $record->mpc_model, 1, 0, 'C');
                 $pdf->Cell(30, 10, $record->mpc_discription, 1, 0, 'C');
-                $pdf->Cell(10, 10, $record->isd_qty, 1, 0, 'C');
-                $totalAmount1 = $record->isd_price_unit;
+                $pdf->Cell(10, 10, $record->isi_qty, 1, 0, 'C');
+                $totalAmount1 = $record->isi_priceofunit;
                 // Format the total amount with commas and decimal point
                 $formattedAmount1 = number_format($totalAmount1, 2, '.', ',');
                 $pdf->Cell(20, 10, $formattedAmount1, 1, 0, 'C');
-                $totalAmount = $record->isd_qty * $record->isd_price_unit;
+                $totalAmount = $record->isi_qty * $record->isi_priceofunit;
 
                 // Format the total amount with commas and decimal point
                 $formattedAmount = number_format($totalAmount, 2, '.', ',');
@@ -378,7 +378,7 @@ class Report extends CI_Controller {
                $pdf->Cell(40, 10, $record->isd_doc_number, 1, 0, 'C');
                $pdf->Cell(40, 10, $record->isd_doc_date, 1, 0, 'C');
                $pdf->Cell(40, 10, $record->sa_firstname.' '.$record->sa_lastname, 1, 0, 'C');
-               $pdf->Cell(20, 10, $record->mpc_qty, 1, 0, 'C');
+               $pdf->Cell(20, 10, $record->total_qty, 1, 0, 'C');
                $totalAmount1 = $record->isd_price_unit;
                // Format the total amount with commas and decimal point
                $formattedAmount1 = number_format($totalAmount1, 2, '.', ',');

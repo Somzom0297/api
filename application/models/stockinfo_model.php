@@ -734,12 +734,17 @@ class stockinfo_model extends CI_Model
     }
     public function showChart(){
         $sql = "SELECT
-            mpc_name,
-           SUM( isi_qty ) as total
-       FROM
-           info_stock_issue
-           LEFT JOIN info_stock_detail ON info_stock_detail.isd_id = info_stock_issue.isd_id
-           LEFT JOIN mst_product_code ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+        mpc.mpc_name,
+        COALESCE(SUM(isi.isi_qty), 0) AS total
+    FROM
+        mst_product_code AS mpc
+    LEFT JOIN
+        info_stock_detail AS isd ON isd.mpc_id = mpc.mpc_id
+    LEFT JOIN
+        info_stock_issue AS isi ON isi.isd_id = isd.isd_id
+    GROUP BY
+        mpc.mpc_name
+        LIMIT 7;;
                 ";
 
         $query = $this->db->query($sql);
@@ -811,21 +816,14 @@ class stockinfo_model extends CI_Model
         // Execute the insert query
         $this->db->query($sqlInsert);
     
-        // Update lsi_status_flg to '1' in log_stock_issue for the records that were inserted
-        $sqlUpdate = "
-            UPDATE log_stock_issue 
-            SET lsi_status_flg = '1' 
-            WHERE lsi_status_flg = '0'
-        ";
-        $this->db->query($sqlUpdate);
-        
         $sql1 = "SELECT
         mst_product_code.mpc_id,
-        SUM(info_stock_issue.isi_qty) as total
+        SUM(log_stock_issue.isi_qty) as total
     FROM
-        `info_stock_issue`
-    LEFT JOIN info_stock_detail ON info_stock_detail.isd_id = info_stock_issue.isd_id
+        `log_stock_issue`
+    LEFT JOIN info_stock_detail ON info_stock_detail.isd_id = log_stock_issue.isd_id
     LEFT JOIN mst_product_code ON info_stock_detail.mpc_id = mst_product_code.mpc_id
+		WHERE lsi_status_flg = '0'
     GROUP BY mst_product_code.mpc_id";
 
 // Execute the select query
@@ -847,6 +845,15 @@ class stockinfo_model extends CI_Model
         $this->db->query($sqlUpdateQty);
     }
     }
+        // Update lsi_status_flg to '1' in log_stock_issue for the records that were inserted
+        $sqlUpdate = "
+            UPDATE log_stock_issue 
+            SET lsi_status_flg = '1' 
+            WHERE lsi_status_flg = '0'
+        ";
+        $this->db->query($sqlUpdate);
+        
+
     
         // Check if any rows were affected by the updates
         return $this->db->affected_rows() > 0 ? true : false;
